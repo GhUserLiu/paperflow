@@ -4,6 +4,7 @@ Automated Paper Collection Script for 5 Research Categories
 """
 
 import asyncio
+import os
 import sys
 from datetime import datetime
 from typing import Dict
@@ -60,8 +61,10 @@ COLLECTION_MAP: Dict[str, str] = {
 
 # Global configuration
 # 全局配置
-ZOTERO_LIBRARY_ID = "19092277"
-ZOTERO_API_KEY = "HoLB2EnPj4PpHo1gQ65qy2aw"
+# Read from environment variables, with fallback to defaults for local testing
+# 从环境变量读取，本地测试时有默认值回退
+ZOTERO_LIBRARY_ID = os.getenv("ZOTERO_LIBRARY_ID", "19092277")
+ZOTERO_API_KEY = os.getenv("ZOTERO_API_KEY", "HoLB2EnPj4PpHo1gQ65qy2aw")
 MAX_RESULTS_PER_CATEGORY = 5  # 每个类别最多获取论文数
 START_DATE = "2023-01-01"  # 起始日期
 
