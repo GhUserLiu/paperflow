@@ -99,6 +99,9 @@ logs/
 arxiv_zotero.log
 zotero_collector.log
 
+# GitHub Actions collection logs (keep them tracked)
+!collection_log.md
+
 # Project specific
 **/arxiv_papers/
 *.pdf

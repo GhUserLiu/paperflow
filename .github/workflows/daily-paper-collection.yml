@@ -1,0 +1,90 @@
+name: Daily ArXiv Paper Collection
+on:
+  schedule:
+    # Run daily at 3:00 AM UTC
+    # 北京时间: 上午11:00 (UTC+8)
+    - cron: '0 3 * * *'
+
+  # Allow manual workflow trigger
+  workflow_dispatch:
+
+jobs:
+  collect-papers:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install arxiv-zotero-connector
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+
+      - name: Run paper collection
+        env:
+          ZOTERO_LIBRARY_ID: ${{ secrets.ZOTERO_LIBRARY_ID }}
+          ZOTERO_API_KEY: ${{ secrets.ZOTERO_API_KEY }}
+        run: |
+          python auto_collect.py
+        continue-on-error: false
+
+      - name: Create commit log
+        if: always()
+        run: |
+          echo "## 📚 Paper Collection Log - $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> collection_log.md
+          echo "" >> collection_log.md
+          echo "### Execution Details" >> collection_log.md
+          echo "- **Trigger**: Scheduled (Daily at 3:00 AM UTC)" >> collection_log.md
+          echo "- **Workflow Run**: [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> collection_log.md
+          echo "" >> collection_log.md
+
+          if [ -f arxiv_zotero.log ]; then
+            echo "### Recent Logs (Last 50 lines)" >> collection_log.md
+            echo "\`\`\`" >> collection_log.md
+            tail -50 arxiv_zotero.log >> collection_log.md
+            echo "\`\`\`" >> collection_log.md
+          fi
+
+          cat collection_log.md
+
+      - name: Commit and push log
+        if: always()
+        run: |
+          git pull --rebase origin main
+          git add collection_log.md arxiv_zotero.log || true
+
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "📚 Daily paper collection log - $(date -u +'%Y-%m-%d')"
+            git push
+          fi
+        continue-on-error: true
+
+      - name: Upload log as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: collection-log-${{ github.run_number }}
+          path: |
+            arxiv_zotero.log
+            collection_log.md
+          retention-days: 30
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "::error::Paper collection failed! Check the logs for details."
+          echo "Visit: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
