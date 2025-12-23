@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip install:*)",
+      "Bash(python -m pytest:*)",
+      "Bash(arxiv-zotero:*)",
+      "Bash(python -m arxiv_zotero.cli:*)",
+      "Bash(python:*)"
+    ]
+  }
+}

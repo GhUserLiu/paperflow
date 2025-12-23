@@ -1,0 +1,11 @@
+arxiv
+pyzotero
+requests
+pytz
+python-dotenv
+asyncio
+aiohttp
+pyyaml
+PyPDF2
+typing
+google.generativeai
