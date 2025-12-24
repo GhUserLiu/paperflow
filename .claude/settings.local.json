@@ -9,7 +9,8 @@
       "Bash(dir:*)",
       "Bash(chcp:*)",
       "Bash(findstr:*)",
-      "Bash(git fetch:*)"
+      "Bash(git fetch:*)",
+      "Bash(git push)"
     ]
   }
 }
