@@ -82,6 +82,7 @@ jobs:
             arxiv_zotero.log
             collection_log.md
           retention-days: 30
+          if-no-files-found: ignore
 
       - name: Notify on failure
         if: failure()

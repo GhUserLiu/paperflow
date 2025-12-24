@@ -7,7 +7,9 @@
       "Bash(python -m arxiv_zotero.cli:*)",
       "Bash(python:*)",
       "Bash(dir:*)",
-      "Bash(chcp:*)"
+      "Bash(chcp:*)",
+      "Bash(findstr:*)",
+      "Bash(git fetch:*)"
     ]
   }
 }
