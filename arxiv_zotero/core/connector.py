@@ -2,6 +2,7 @@ import asyncio
 from typing import List, Dict, Tuple
 import logging
 from typing import Optional
+from pathlib import Path
 
 from ..utils.credentials import load_credentials
 from ..config.arxiv_config import ARXIV_TO_ZOTERO_MAPPING
@@ -13,12 +14,16 @@ from ..clients.zotero_client import ZoteroClient
 from .paper_processor import PaperProcessor
 from ..utils.summarizer import PaperSummarizer
 
+# Setup logs directory
+LOG_DIR = Path(__file__).parent.parent.parent / 'logs'
+LOG_DIR.mkdir(exist_ok=True)
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler('arxiv_zotero.log', mode='a', encoding='utf-8')
+        logging.FileHandler(LOG_DIR / 'arxiv_zotero.log', mode='a', encoding='utf-8')
     ]
 )
 logger = logging.getLogger(__name__)

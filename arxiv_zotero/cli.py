@@ -14,13 +14,17 @@ from .core.search_params import ArxivSearchParams
 from .utils.credentials import load_credentials, CredentialsError
 from .utils.summarizer import PaperSummarizer
 
+# Setup logs directory
+LOG_DIR = Path(__file__).parent.parent.parent / 'logs'
+LOG_DIR.mkdir(exist_ok=True)
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler('arxiv_zotero.log', mode='a', encoding='utf-8')
+        logging.FileHandler(LOG_DIR / 'arxiv_zotero.log', mode='a', encoding='utf-8')
     ]
 )
 logger = logging.getLogger(__name__)

@@ -31,8 +31,8 @@
 # 进入项目目录
 cd arxiv-zotero-connector
 
-# 运行采集脚本
-python auto_collect.py
+# 运行采集脚本（新路径）
+python scripts/auto_collect.py
 ```
 
 ### 方式二：GitHub Actions 自动运行（推荐）
@@ -103,15 +103,15 @@ python auto_collect.py
 
 #### 修改采集数量
 
-编辑 [auto_collect.py](auto_collect.py#L54) 中的配置：
+编辑 [scripts/auto_collect.py](scripts/auto_collect.py#L68) 中的配置：
 
 ```python
-MAX_RESULTS_PER_CATEGORY = 100  # 改为每类 100 篇
+MAX_RESULTS_PER_CATEGORY = 10  # 改为每类 10 篇
 ```
 
 #### 自定义查询语句
 
-编辑 [auto_collect.py](auto_collect.py#L21) 中的 `QUERY_MAP`：
+编辑 [scripts/auto_collect.py](scripts/auto_collect.py#L22) 中的 `QUERY_MAP`：
 
 ```python
 QUERY_MAP = {
@@ -329,7 +329,7 @@ Auto Paper Collection System
 
 ### 添加新的研究类别
 
-1. 在 [auto_collect.py](auto_collect.py#L21) 的 `QUERY_MAP` 中添加查询：
+1. 在 [scripts/auto_collect.py](scripts/auto_collect.py#L22) 的 `QUERY_MAP` 中添加查询：
 
 ```python
 QUERY_MAP = {
@@ -374,7 +374,7 @@ COLLECTION_MAP = {
 
 ### 添加日期过滤
 
-编辑 [auto_collect.py](auto_collect.py#L95) 添加日期参数：
+编辑 [scripts/auto_collect.py](scripts/auto_collect.py#L95) 添加日期参数：
 
 ```python
 from datetime import datetime
@@ -462,7 +462,7 @@ logging.getLogger('arxiv_zotero').setLevel(logging.DEBUG)
 
 ```bash
 # Windows
-tail -f arxiv_zotero.log
+tail -f logs/arxiv_zotero.log
 
 # 或使用文本编辑器打开
 ```
@@ -584,7 +584,7 @@ arxiv-zotero-connector/
 
 ### 遇到问题？
 
-1. **查看日志**: 检查 `arxiv_zotero.log` 文件
+1. **查看日志**: 检查 `logs/arxiv_zotero.log` 文件
 2. **运行测试**: `python -m pytest tests/test_duplicate_detection.py -v`
 3. **查看文档**: 阅读相关章节的详细说明
 4. **提交 Issue**: [GitHub Issues](https://github.com/StepanKropachev/arxiv-zotero-connector/issues)

@@ -10,7 +10,16 @@
       "Bash(chcp:*)",
       "Bash(findstr:*)",
       "Bash(git fetch:*)",
-      "Bash(git push)"
+      "Bash(git push)",
+      "Bash(if [ -f \"nul\" ])",
+      "Bash(then rm nul)",
+      "Bash(fi:*)",
+      "Bash(if:*)",
+      "Bash(then mv arxiv_zotero.log logs/)",
+      "Bash(tree:*)",
+      "Bash(ls:*)",
+      "Bash(test:*)",
+      "Bash(find:*)"
     ]
   }
 }

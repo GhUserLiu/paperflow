@@ -47,15 +47,27 @@ class PaperProcessor:
     async def process_paper(self, paper: Dict, download_pdfs: bool = True) -> bool:
         """
         Process a single paper asynchronously
-        
+
         Args:
             paper: Dictionary containing paper metadata
             download_pdfs: Whether to download and attach PDFs
-            
+
         Returns:
             bool: True if processing was successful, False otherwise
         """
         try:
+            # Check for duplicate using arXiv ID (global search across all collections)
+            # 使用 arXiv ID 检查重复（全局搜索所有集合）
+            arxiv_id = paper.get('arxiv_id')
+            if arxiv_id:
+                existing_item_key = self.zotero_client.check_duplicate(
+                    identifier=arxiv_id,
+                    identifier_field='archiveLocation'
+                )
+                if existing_item_key:
+                    logger.info(f"Paper {arxiv_id} already exists in library (item: {existing_item_key}), skipping")
+                    return True  # Return True to indicate successful handling (skipped as duplicate)
+
             # Create main Zotero item
             item_key = self.create_zotero_item(paper)
             if not item_key:

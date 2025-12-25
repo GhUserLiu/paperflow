@@ -37,7 +37,7 @@ jobs:
           ZOTERO_LIBRARY_ID: ${{ secrets.ZOTERO_LIBRARY_ID }}
           ZOTERO_API_KEY: ${{ secrets.ZOTERO_API_KEY }}
         run: |
-          python auto_collect.py
+          python scripts/auto_collect.py
         continue-on-error: false
 
       - name: Create commit log
@@ -50,10 +50,10 @@ jobs:
           echo "- **Workflow Run**: [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> collection_log.md
           echo "" >> collection_log.md
 
-          if [ -f arxiv_zotero.log ]; then
+          if [ -f logs/arxiv_zotero.log ]; then
             echo "### Recent Logs (Last 50 lines)" >> collection_log.md
             echo "\`\`\`" >> collection_log.md
-            tail -50 arxiv_zotero.log >> collection_log.md
+            tail -50 logs/arxiv_zotero.log >> collection_log.md
             echo "\`\`\`" >> collection_log.md
           fi
 
@@ -63,7 +63,7 @@ jobs:
         if: always()
         run: |
           git pull --rebase origin main
-          git add collection_log.md arxiv_zotero.log || true
+          git add collection_log.md logs/arxiv_zotero.log || true
 
           if git diff --staged --quiet; then
             echo "No changes to commit"
@@ -79,7 +79,7 @@ jobs:
         with:
           name: collection-log-${{ github.run_number }}
           path: |
-            arxiv_zotero.log
+            logs/arxiv_zotero.log
             collection_log.md
           retention-days: 30
           if-no-files-found: ignore

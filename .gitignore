@@ -95,19 +95,26 @@ python-virtualenv/
 
 # Logs
 *.log
-logs/
 arxiv_zotero.log
 zotero_collector.log
+
+# Keep logs directory structure but ignore log files
+logs/*.log
 
 # GitHub Actions collection logs (keep them tracked)
 !collection_log.md
 
 # Project specific
 **/arxiv_papers/
+output/
 *.pdf
 credentials.json
 config.yaml
 query_config.yaml
+
+# Temporary files
+nul
+*.tmp
 
 # macOS specific
 .DS_Store
