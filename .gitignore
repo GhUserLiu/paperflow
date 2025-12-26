@@ -20,26 +20,6 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
-LICENSE
-
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
 
 # PyInstaller
 *.manifest
@@ -60,10 +40,6 @@ coverage.xml
 .pytest_cache/
 cover/
 
-# Translations
-*.mo
-*.pot
-
 # Jupyter Notebook
 .ipynb_checkpoints
 
@@ -73,9 +49,7 @@ ipython_config.py
 
 # Environments
 .env
-.env.*
 .venv
-env/
 venv/
 ENV/
 env.bak/
@@ -95,10 +69,6 @@ python-virtualenv/
 
 # Logs
 *.log
-arxiv_zotero.log
-zotero_collector.log
-
-# Keep logs directory structure but ignore log files
 logs/*.log
 
 # GitHub Actions collection logs (keep them tracked)
@@ -115,6 +85,7 @@ query_config.yaml
 # Temporary files
 nul
 *.tmp
+*.bak
 
 # macOS specific
 .DS_Store
@@ -131,19 +102,6 @@ ehthumbs_vista.db
 *.stackdump
 [Dd]esktop.ini
 $RECYCLE.BIN/
-test_env/
-venv/
-env/
-*.egg-info/
-dist/
-build/
-
-test_env/
-venv/
-env/
-*.egg-info/
-dist/
-build/
 
 # Test environments
 test_env/
@@ -157,5 +115,3 @@ test_install/
 dist/
 build/
 *.egg-info/
-"/env/" 
-"/.env/" 

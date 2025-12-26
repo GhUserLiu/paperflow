@@ -20,7 +20,8 @@
       "Bash(ls:*)",
       "Bash(test:*)",
       "Bash(find:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(git add:*)"
     ]
   }
 }
