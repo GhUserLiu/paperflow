@@ -119,3 +119,7 @@ test_install/
 dist/
 build/
 *.egg-info/
+*.egg
+
+# Claude Code settings
+.claude/settings.local.json

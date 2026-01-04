@@ -53,7 +53,7 @@
    pip install -e .
    ```
 
-📖 **详细环境配置**: 查看 [SETUP_ENVIRONMENT.md](SETUP_ENVIRONMENT.md)
+📖 **详细配置**: 查看 [PROJECT_GUIDE.md](PROJECT_GUIDE.md)
 
 ### 方式一：手动运行
 
@@ -600,18 +600,14 @@ arxiv-zotero-connector/
 ├── requirements.txt            # 依赖列表
 ├── setup.py                   # 安装配置
 ├── README.md                  # 项目说明（本文件）
-└── api-docs.md                # API 文档
+└── PROJECT_GUIDE.md           # 完整使用指南
 ```
 
 ## 📚 相关资源
 
 ### 📖 项目文档
 
-- [PROJECT_GUIDE.md](PROJECT_GUIDE.md) - **完整使用指南** (推荐)
-- [API_OPTIMIZATION_SUMMARY.md](API_OPTIMIZATION_SUMMARY.md) - API 优化详细说明
-- [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) - 项目结构和模块说明
-- [SETUP_ENVIRONMENT.md](SETUP_ENVIRONMENT.md) - 虚拟环境设置指南
-- [docs/api-docs.md](docs/api-docs.md) - API 详细文档
+- [PROJECT_GUIDE.md](PROJECT_GUIDE.md) - **完整使用指南** (包含所有功能和配置说明)
 
 ### 官方文档
 
@@ -645,8 +641,8 @@ MIT License - 详见 [LICENSE](LICENSE) 文件
 
 ---
 
-**版本**: 0.1.0
-**最后更新**: 2025-12-23
+**版本**: 2.0.0 (优化版)
+**最后更新**: 2026-01-04
 **维护状态**: 活跃开发中
 
 ---
