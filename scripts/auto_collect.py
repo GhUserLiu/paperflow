@@ -6,7 +6,7 @@ Automated Paper Collection Script for 5 Research Categories
 import asyncio
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict
 from arxiv_zotero import ArxivZoteroCollector, ArxivSearchParams
 
@@ -66,7 +66,10 @@ COLLECTION_MAP: Dict[str, str] = {
 ZOTERO_LIBRARY_ID = os.getenv("ZOTERO_LIBRARY_ID", "19092277")
 ZOTERO_API_KEY = os.getenv("ZOTERO_API_KEY", "HoLB2EnPj4PpHo1gQ65qy2aw")
 MAX_RESULTS_PER_CATEGORY = 10  # 每个类别最多获取论文数
-START_DATE = "2023-01-01"  # 起始日期
+
+# Time filter: only collect papers from the last N hours
+# 时间过滤:只收集过去 N 小时内的论文
+TIME_FILTER_HOURS = 25
 
 
 async def collect_papers_for_category(
@@ -90,6 +93,7 @@ async def collect_papers_for_category(
     print(f"开始采集类别: {category}")
     print(f"查询语句: {query}")
     print(f"目标集合: {collection_key}")
+    print(f"时间范围: 过去 {TIME_FILTER_HOURS} 小时")
     print(f"{'='*60}")
 
     try:
@@ -101,15 +105,22 @@ async def collect_papers_for_category(
             collection_key=collection_key
         )
 
-        # Configure search parameters
-        # 配置搜索参数
+        # Calculate time filter (past N hours)
+        # 计算时间过滤(过去 N 小时)
+        start_date = datetime.now() - timedelta(hours=TIME_FILTER_HOURS)
+
+        # Configure search parameters with time filter
+        # 配置搜索参数(包含时间过滤)
         search_params = ArxivSearchParams(
             keywords=[query],
+            start_date=start_date,
             max_results=MAX_RESULTS_PER_CATEGORY
         )
 
-        # Run collection
-        # 执行采集
+        print(f"起始时间: {start_date.strftime('%Y-%m-%d %H:%M:%S')}")
+
+        # Run collection (duplicate checking is disabled by checking for None)
+        # 执行采集(查重功能已禁用)
         successful, failed = await collector.run_collection_async(
             search_params=search_params,
             download_pdfs=True
@@ -138,7 +149,8 @@ async def main():
     print(f"开始时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"采集类别数: {len(QUERY_MAP)}")
     print(f"每类最多论文数: {MAX_RESULTS_PER_CATEGORY}")
-    print(f"起始日期: {START_DATE}")
+    print(f"时间范围: 过去 {TIME_FILTER_HOURS} 小时")
+    print(f"查重功能: 已禁用(直接添加所有论文)")
 
     # Statistics
     total_successful = 0

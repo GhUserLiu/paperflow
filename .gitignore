@@ -70,6 +70,8 @@ python-virtualenv/
 # Logs
 *.log
 logs/*.log
+# Keep the logs directory but ignore log files inside it
+!logs/.gitkeep
 
 # GitHub Actions collection logs (keep them tracked)
 !collection_log.md
@@ -86,6 +88,8 @@ query_config.yaml
 nul
 *.tmp
 *.bak
+test_output.txt
+*.txt.bak
 
 # macOS specific
 .DS_Store

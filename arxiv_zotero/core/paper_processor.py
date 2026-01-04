@@ -54,19 +54,15 @@ class PaperProcessor:
 
         Returns:
             bool: True if processing was successful, False otherwise
+
+        Note:
+            Duplicate checking is disabled. All papers are added directly.
         """
         try:
-            # Check for duplicate using arXiv ID (global search across all collections)
-            # 使用 arXiv ID 检查重复（全局搜索所有集合）
-            arxiv_id = paper.get('arxiv_id')
-            if arxiv_id:
-                existing_item_key = self.zotero_client.check_duplicate(
-                    identifier=arxiv_id,
-                    identifier_field='archiveLocation'
-                )
-                if existing_item_key:
-                    logger.info(f"Paper {arxiv_id} already exists in library (item: {existing_item_key}), skipping")
-                    return True  # Return True to indicate successful handling (skipped as duplicate)
+            # Skip duplicate checking - directly add the paper
+            # 跳过查重检查 - 直接添加论文
+            arxiv_id = paper.get('arxiv_id', 'unknown')
+            logger.info(f"Processing paper: {arxiv_id}")
 
             # Create main Zotero item
             item_key = self.create_zotero_item(paper)

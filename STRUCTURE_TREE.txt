@@ -1,0 +1,60 @@
+arxiv-zotero-auto/
+│
+├── 📦 核心包 (arxiv_zotero/)
+│   ├── __init__.py              # 包初始化
+│   ├── __main__.py              # 支持 python -m arxiv_zotero
+│   ├── cli.py                   # 命令行接口
+│   │
+│   ├── clients/                 # API 客户端
+│   │   ├── arxiv_client.py      # arXiv API
+│   │   └── zotero_client.py     # Zotero API
+│   │
+│   ├── config/                  # 配置模块
+│   │   ├── arxiv_config.py      # 字段映射
+│   │   └── metadata_config.py   # 元数据处理
+│   │
+│   ├── core/                    # 核心逻辑
+│   │   ├── connector.py         # 主连接器
+│   │   ├── paper_processor.py   # 论文处理器
+│   │   └── search_params.py     # 搜索参数
+│   │
+│   └── utils/                   # 工具函数
+│       ├── credentials.py       # 凭证加载
+│       ├── pdf_manager.py       # PDF 管理
+│       └── summarizer.py        # AI 摘要
+│
+├── 🛠️ 开发工具 (dev-tools/)
+│   ├── cleanup_duplicates.py    # 清理重复
+│   ├── debug_zotero_api.py      # API 调试
+│   └── test_*.py                # 测试脚本
+│
+├── 📜 脚本 (scripts/)
+│   └── auto_collect.py          # 主采集脚本
+│
+├── 🧪 测试 (tests/)
+│   ├── test_duplicate_detection.py
+│   └── test_imports.py
+│
+├── 📚 文档 (*.md)
+│   ├── README.md                # 项目说明
+│   ├── PROJECT_STRUCTURE.md     # 结构说明
+│   ├── SETUP_ENVIRONMENT.md     # 环境配置
+│   └── OPTIMIZATION_SUMMARY.md  # 优化总结
+│
+├── ⚙️ 配置文件
+│   ├── .env                     # 环境变量(不提交)
+│   ├── .env.example             # 环境变量示例
+│   ├── .gitignore               # Git 忽略规则
+│   ├── requirements.txt         # 依赖列表
+│   ├── setup.py                 # 安装配置
+│   └── pyproject.toml           # 项目配置
+│
+├── 🔧 其他
+│   ├── automation.py            # 自动化脚本
+│   ├── logs/                    # 日志目录
+│   ├── docs/                    # 详细文档
+│   └── examples/                # 使用示例
+│
+└── 🚀 GitHub Actions
+    └── .github/workflows/
+        └── daily-paper-collection.yml

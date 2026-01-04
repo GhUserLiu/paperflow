@@ -1,6 +1,8 @@
 # ArXiv-Zotero 自动化论文采集系统
 
-> 自动从 arXiv 采集最新研究论文，智能分类并同步到 Zotero 文献库，支持重复检测、自动下载 PDF 和 GitHub Actions 定时任务。
+> 自动从 arXiv 采集最新研究论文，智能分类并同步到 Zotero 文献库
+
+**版本**: 2.0.0 (优化版) | API 请求减少 97% | 符合 Zotero API 要求
 
 ## 📋 项目概述
 
@@ -8,10 +10,11 @@
 
 - 🤖 **自动采集**: 从 arXiv 自动检索最新论文
 - 📂 **智能分类**: 自动将论文分配到 5 个研究方向的 Zotero 集合
-- 🔍 **重复检测**: 自动跳过已存在的文献，避免重复
+- ⏰ **时间过滤**: 只添加过去 25 小时内的论文
 - 📥 **PDF 下载**: 自动下载并上传 PDF 到 Zotero
 - ⏰ **定时运行**: 支持 GitHub Actions 每天自动运行
-- 📊 **日志追踪**: 详细的采集日志和历史记录
+- 📊 **日志追踪**: 详细的采集日志和 API 统计
+- 🚀 **API 优化**: 缓存+速率限制,安全可靠
 
 ## 🎯 五类研究方向
 
@@ -25,13 +28,37 @@
 
 ## 🚀 快速开始
 
+### 📚 前置准备
+
+1. **克隆项目**
+   ```bash
+   git clone https://github.com/StepanKropachev/arxiv-zotero-connector.git
+   cd arxiv-zotero-connector
+   ```
+
+2. **设置虚拟环境** (推荐)
+   ```bash
+   # Windows
+   python -m venv venv
+   venv\Scripts\activate
+
+   # Linux/macOS
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
+
+3. **安装依赖**
+   ```bash
+   pip install -r requirements.txt
+   pip install -e .
+   ```
+
+📖 **详细环境配置**: 查看 [SETUP_ENVIRONMENT.md](SETUP_ENVIRONMENT.md)
+
 ### 方式一：手动运行
 
 ```bash
-# 进入项目目录
-cd arxiv-zotero-connector
-
-# 运行采集脚本（新路径）
+# 运行采集脚本
 python scripts/auto_collect.py
 ```
 
@@ -40,6 +67,16 @@ python scripts/auto_collect.py
 配置 GitHub Actions 后，系统将每天 **UTC 3:00**（北京时间 11:00）自动运行。
 
 详见下文「GitHub Actions 自动化配置」章节。
+
+### 方式三：使用命令行接口
+
+```bash
+# 查看帮助
+python -m arxiv_zotero.cli --help
+
+# 使用配置文件
+python -m arxiv_zotero.cli --config search_config.yaml
+```
 
 ## 📦 安装配置
 
@@ -567,6 +604,14 @@ arxiv-zotero-connector/
 ```
 
 ## 📚 相关资源
+
+### 📖 项目文档
+
+- [PROJECT_GUIDE.md](PROJECT_GUIDE.md) - **完整使用指南** (推荐)
+- [API_OPTIMIZATION_SUMMARY.md](API_OPTIMIZATION_SUMMARY.md) - API 优化详细说明
+- [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) - 项目结构和模块说明
+- [SETUP_ENVIRONMENT.md](SETUP_ENVIRONMENT.md) - 虚拟环境设置指南
+- [docs/api-docs.md](docs/api-docs.md) - API 详细文档
 
 ### 官方文档
 

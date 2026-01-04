@@ -21,7 +21,12 @@
       "Bash(test:*)",
       "Bash(find:*)",
       "Bash(rm:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(then tail -50 logs/arxiv_zotero.log)",
+      "Bash(else:*)",
+      "Bash(timeout:*)",
+      "Bash(git commit:*)",
+      "Bash(git config:*)"
     ]
   }
 }
