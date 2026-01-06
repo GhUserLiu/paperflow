@@ -20,7 +20,7 @@ class ZoteroClient:
     def __init__(self, library_id: str, api_key: str, collection_key: str = None):
         """
         Initialize the Zotero client
-        
+
         Args:
             library_id: Zotero library identifier
             api_key: Zotero API key
@@ -28,7 +28,7 @@ class ZoteroClient:
         """
         self.zot = zotero.Zotero(library_id, 'user', api_key)
         self.collection_key = collection_key
-        
+
         # Configure HTTP session for better performance
         self.session = requests.Session()
         self.session.mount('https://', requests.adapters.HTTPAdapter(
@@ -36,13 +36,120 @@ class ZoteroClient:
             pool_connections=10,
             pool_maxsize=20
         ))
-        
-        # Rate limiting support
-        self.request_times = deque(maxlen=10)
-        self.min_request_interval = 0.1
-        
+
+        # ========== 优化: 缓存和速率限制 ==========
+        # arXiv ID 缓存,避免重复请求
+        self._arxiv_id_cache: Dict[str, str] = {}  # {arxiv_id: item_key}
+        self._cache_timestamp: Optional[float] = None
+        self._cache_ttl = 300  # 缓存有效期 5 分钟
+
+        # API 请求统计
+        self._request_count = 0
+        self._start_time = time.time()
+
+        # 速率限制保护 (Zotero 限制: 每 10 分钟 100 次)
+        # 即: 每 6 秒 1 次请求
+        self.request_times = deque(maxlen=100)
+        self.min_request_interval = 6.0  # 6 秒
+
         if collection_key:
             self._validate_collection()
+
+    def _rate_limit(self):
+        """
+        速率限制保护,确保不超过 Zotero API 限制
+
+        Zotero 限制: 每 10 分钟 100 次请求
+        实现: 如果接近限制,自动等待
+        """
+        now = time.time()
+
+        # 移除 10 分钟前的请求记录
+        while self.request_times and now - self.request_times[0] > 600:
+            self.request_times.popleft()
+
+        # 如果达到 90 次请求(90% 限制),开始等待
+        if len(self.request_times) >= 90:
+            sleep_time = 600 - (now - self.request_times[0]) + 5  # 额外 5 秒缓冲
+            if sleep_time > 0:
+                logger.warning(
+                    f"接近 Zotero API 速率限制 ({len(self.request_times)}/100), "
+                    f"等待 {sleep_time:.1f} 秒..."
+                )
+                time.sleep(sleep_time)
+
+        # 如果两次请求间隔太短,等待
+        if self.request_times:
+            time_since_last = now - self.request_times[-1]
+            if time_since_last < self.min_request_interval:
+                time.sleep(self.min_request_interval - time_since_last)
+
+    def _track_request(self):
+        """记录 API 请求,用于统计和速率限制"""
+        self._request_count += 1
+        self.request_times.append(time.time())
+
+        # 每 50 次请求输出一次统计
+        if self._request_count % 50 == 0:
+            elapsed = time.time() - self._start_time
+            rate = self._request_count / elapsed if elapsed > 0 else 0
+            logger.info(
+                f"API 请求统计: {self._request_count} 次, "
+                f"耗时 {elapsed:.1f} 秒, "
+                f"平均速率 {rate:.2f} 次/秒"
+            )
+
+    def _is_cache_valid(self) -> bool:
+        """检查缓存是否有效"""
+        if self._cache_timestamp is None:
+            return False
+        return (time.time() - self._cache_timestamp) < self._cache_ttl
+
+    def _refresh_arxiv_id_cache(self):
+        """刷新 arXiv ID 缓存"""
+        try:
+            logger.info("刷新 arXiv ID 缓存...")
+            self._rate_limit()  # 速率限制
+
+            results = self.zot.items(sort='dateAdded', direction='desc', limit=500)
+
+            # 构建缓存: {arxiv_id: item_key}
+            self._arxiv_id_cache = {}
+            for item in results:
+                item_data = item.get('data', item) if isinstance(item, dict) else item
+                arxiv_id = item_data.get('archiveLocation', '')
+                if arxiv_id:
+                    self._arxiv_id_cache[arxiv_id.strip()] = item_data.get('key')
+
+            self._cache_timestamp = time.time()
+            self._track_request()
+
+            logger.info(f"arXiv ID 缓存已刷新,共 {len(self._arxiv_id_cache)} 条记录")
+
+        except Exception as e:
+            logger.error(f"刷新 arXiv ID 缓存失败: {str(e)}")
+            # 失败时使用空缓存,避免影响后续操作
+            self._arxiv_id_cache = {}
+            self._cache_timestamp = None
+
+    def get_api_stats(self) -> Dict[str, any]:
+        """
+        获取 API 请求统计信息
+
+        Returns:
+            Dict containing:
+                - total_requests: 总请求数
+                - elapsed_time: 总耗时(秒)
+                - rate: 平均速率(请求/秒)
+                - cache_size: 缓存条目数
+        """
+        elapsed = time.time() - self._start_time
+        return {
+            'total_requests': self._request_count,
+            'elapsed_time': elapsed,
+            'rate': self._request_count / elapsed if elapsed > 0 else 0,
+            'cache_size': len(self._arxiv_id_cache)
+        }
 
     def _validate_collection(self):
         """
@@ -63,20 +170,22 @@ class ZoteroClient:
     def create_item(self, template_type: str, metadata: Dict) -> Optional[str]:
         """
         Create a new item in Zotero
-        
+
         Args:
             template_type: Type of Zotero item ('journalArticle', 'attachment', etc.)
             metadata: Mapped metadata to apply to the template
-            
+
         Returns:
             Optional[str]: Item key if successful, None otherwise
         """
         try:
+            self._rate_limit()  # 速率限制
             template = self.zot.item_template(template_type)
             template.update(metadata)
 
             response = self.zot.create_items([template])
-            
+            self._track_request()  # 统计请求
+
             if 'successful' in response and response['successful']:
                 item_key = list(response['successful'].values())[0]['key']
                 logger.info(f"Successfully created item with key: {item_key}")
@@ -92,10 +201,10 @@ class ZoteroClient:
     def add_to_collection(self, item_key: str) -> bool:
         """
         Add an item to the specified collection
-        
+
         Args:
             item_key: Key of the item to add
-            
+
         Returns:
             bool: True if successful, False otherwise
         """
@@ -103,9 +212,11 @@ class ZoteroClient:
             return True
 
         try:
+            self._rate_limit()  # 速率限制
             item = self.zot.item(item_key)
             success = self.zot.addto_collection(self.collection_key, item)
-            
+            self._track_request()  # 统计请求
+
             if success:
                 logger.info(f"Successfully added item {item_key} to collection")
                 return True
@@ -167,21 +278,50 @@ class ZoteroClient:
 
     def check_duplicate(self, identifier: str, identifier_field: str = 'DOI') -> Optional[str]:
         """
-        Check if an item already exists in the library
-        
+        Check if an item already exists in the library (优化版:使用缓存)
+
         Args:
             identifier: Value to search for (DOI, arXiv ID, etc.)
-            identifier_field: Field to search in
-            
+            identifier_field: Field to search in (DOI, archiveLocation, etc.)
+
         Returns:
             Optional[str]: Item key if found, None otherwise
+
+        Note:
+            使用缓存机制避免重复 API 请求:
+            - 首次调用: 加载最近 500 篇论文到缓存 (1 次 API 请求)
+            - 后续调用: 从缓存查找 (0 次 API 请求)
+            - 缓存有效期: 5 分钟
         """
         try:
-            query = f'{identifier_field}:"{identifier}"'
-            results = self.zot.items(q=query)
-            
+            # 只对 archiveLocation 字段使用缓存优化
+            if identifier_field == 'archiveLocation':
+                # 检查缓存是否有效,无效则刷新
+                if not self._is_cache_valid():
+                    self._refresh_arxiv_id_cache()
+
+                # 从缓存查找
+                item_key = self._arxiv_id_cache.get(identifier.strip())
+                if item_key:
+                    logger.info(f"从缓存找到重复 {identifier_field} '{identifier}' → item {item_key}")
+                return item_key
+
+            # 其他字段仍使用原方法
+            logger.debug(f"缓存未命中或非 archiveLocation 字段,使用 API 查询")
+            self._rate_limit()
+            results = self.zot.items(sort='dateAdded', direction='desc', limit=500)
+            self._track_request()
+
             if results:
-                return results[0]['key']
+                for item in results:
+                    item_data = item.get('data', item) if isinstance(item, dict) else item
+                    field_value = item_data.get(identifier_field, '')
+
+                    if field_value and str(field_value).strip() == str(identifier).strip():
+                        logger.info(f"Found duplicate {identifier_field} '{identifier}' in item {item_data.get('key')}")
+                        return item_data.get('key')
+
+            logger.debug(f"No duplicate found for {identifier_field}='{identifier}' in recent 500 items")
             return None
 
         except Exception as e:

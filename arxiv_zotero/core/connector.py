@@ -73,8 +73,18 @@ class ArxivZoteroCollector:
                 
             tasks = [process_paper(paper) for paper in papers]
             await asyncio.gather(*tasks)
-                    
+
             logger.info(f"Collection complete. Successfully processed {successful} papers. Failed: {failed}")
+
+            # 输出 API 统计信息
+            api_stats = self.zotero_client.get_api_stats()
+            logger.info(
+                f"API 请求统计: {api_stats['total_requests']} 次, "
+                f"耗时 {api_stats['elapsed_time']:.1f} 秒, "
+                f"平均速率 {api_stats['rate']:.2f} 次/秒, "
+                f"缓存条目 {api_stats['cache_size']} 条"
+            )
+
             return successful, failed
             
         except Exception as e:
