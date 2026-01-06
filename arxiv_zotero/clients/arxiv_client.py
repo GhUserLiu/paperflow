@@ -25,14 +25,25 @@ class ArxivClient:
         """Filter arxiv result by date range"""
         if not (start_date or end_date):
             return True
-            
+
         pub_date = result.published.astimezone(pytz.UTC)
-        
-        if start_date and pub_date < start_date:
-            return False
-        if end_date and pub_date > end_date:
-            return False
-            
+
+        # Ensure start_date and end_date are timezone-aware
+        # 确保 start_date 和 end_date 有时区信息
+        if start_date:
+            if start_date.tzinfo is None:
+                # If naive, assume UTC
+                start_date = start_date.replace(tzinfo=pytz.UTC)
+            if pub_date < start_date:
+                return False
+
+        if end_date:
+            if end_date.tzinfo is None:
+                # If naive, assume UTC
+                end_date = end_date.replace(tzinfo=pytz.UTC)
+            if pub_date > end_date:
+                return False
+
         return True
 
     def filter_by_content_type(self, result: arxiv.Result, content_type: Optional[str]) -> bool:
