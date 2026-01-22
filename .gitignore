@@ -78,7 +78,6 @@ logs/*.log
 
 # Project specific
 **/arxiv_papers/
-output/
 *.pdf
 credentials.json
 config.yaml
