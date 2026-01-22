@@ -19,8 +19,8 @@ Preload Common Journal Metrics from OpenAlex
     - 离线也能使用缓存数据
 """
 
-import sys
 import logging
+import sys
 from pathlib import Path
 
 # Add project root to path
@@ -31,20 +31,13 @@ from arxiv_zotero.clients.openalex_client import OpenAlexClient
 # 常见计算机科学和工程期刊列表
 TOP_JOURNALS = {
     # 综合类
-    "general": [
-        "Nature",
-        "Science",
-        "Cell",
-        "PNAS"
-    ],
-
+    "general": ["Nature", "Science", "Cell", "PNAS"],
     # 计算机科学 - 综合
     "cs_general": [
         "Journal of the ACM",
         "SIAM Journal on Computing",
-        "ACM Transactions on Computer Systems"
+        "ACM Transactions on Computer Systems",
     ],
-
     # 人工智能与机器学习
     "ai_ml": [
         "Journal of Machine Learning Research",
@@ -53,15 +46,13 @@ TOP_JOURNALS = {
         "IEEE Transactions on Neural Networks and Learning Systems",
         "Pattern Recognition",
         "Artificial Intelligence",
-        "Journal of Artificial Intelligence Research"
+        "Journal of Artificial Intelligence Research",
     ],
-
     # 计算机视觉
     "cv": [
         "IEEE Transactions on Pattern Analysis and Machine Intelligence",
-        "International Journal of Computer Vision"
+        "International Journal of Computer Vision",
     ],
-
     # 会议论文（预印本常见）
     "conferences": [
         "NeurIPS",
@@ -74,24 +65,19 @@ TOP_JOURNALS = {
         "IJCAI",
         "ACL",
         "EMNLP",
-        "ICLR"
+        "ICLR",
     ],
-
     # 自动驾驶相关
     "autonomous": [
         "IEEE Transactions on Intelligent Transportation Systems",
-        "IEEE Transactions on Vehicular Technology"
-    ]
+        "IEEE Transactions on Vehicular Technology",
+    ],
 }
 
 logger = logging.getLogger(__name__)
 
 
-def preload_journal_metrics(
-    client: OpenAlexClient,
-    journals: list,
-    category_name: str = "custom"
-):
+def preload_journal_metrics(client: OpenAlexClient, journals: list, category_name: str = "custom"):
     """
     预加载指定期刊列表的指标数据
 
@@ -146,7 +132,7 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(
-        description='预加载常见期刊的 OpenAlex 指标数据',
+        description="预加载常见期刊的 OpenAlex 指标数据",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 示例 | Examples:
@@ -163,30 +149,26 @@ def main():
   - 首次运行会创建缓存文件
   - 后续运行会更新缓存（不覆盖已有数据）
   - 缓存文件位置: config/journal_metrics_cache.json
-        """
+        """,
     )
 
     parser.add_argument(
-        '--category',
+        "--category",
         type=str,
-        choices=['general', 'cs_general', 'ai_ml', 'cv', 'conferences', 'autonomous', 'all'],
-        default='all',
-        help='预加载的期刊分类（默认: all）'
+        choices=["general", "cs_general", "ai_ml", "cv", "conferences", "autonomous", "all"],
+        default="all",
+        help="预加载的期刊分类（默认: all）",
     )
 
-    parser.add_argument(
-        '--custom',
-        nargs='+',
-        help='自定义期刊名称列表'
-    )
+    parser.add_argument("--custom", nargs="+", help="自定义期刊名称列表")
 
     args = parser.parse_args()
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("OpenAlex 期刊缓存预热工具 | Journal Cache Preloader")
-    print("="*60)
+    print("=" * 60)
     print(f"开始时间: {__import__('datetime').datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
     try:
         # 初始化 OpenAlex 客户端
@@ -200,12 +182,12 @@ def main():
             total_success += preload_journal_metrics(client, args.custom, "自定义")
 
         # 预加载分类期刊
-        if args.category == 'all':
+        if args.category == "all":
             print("\n📚 预加载所有默认期刊分类")
             for category, journals in TOP_JOURNALS.items():
                 print(f"\n--- {category.upper()} ---")
                 total_success += preload_journal_metrics(client, journals, category)
-        elif args.category != 'custom' and args.category in TOP_JOURNALS:
+        elif args.category != "custom" and args.category in TOP_JOURNALS:
             print(f"\n📚 预加载分类: {args.category}")
             journals = TOP_JOURNALS[args.category]
             total_success += preload_journal_metrics(client, journals, args.category)
@@ -224,13 +206,14 @@ def main():
 
         print(f"\n✅ 缓存预热完成！")
         print(f"💡 下次运行 search_papers.py --enable-openalex 时将自动使用缓存")
-        print("="*60 + "\n")
+        print("=" * 60 + "\n")
 
         return 0
 
     except Exception as e:
         print(f"\n❌ 错误 | Error: {e}")
         import traceback
+
         traceback.print_exc()
         return 1
 

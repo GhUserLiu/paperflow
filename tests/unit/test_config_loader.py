@@ -3,7 +3,9 @@
 """
 
 import os
+
 import pytest
+
 from arxiv_zotero.utils import ConfigLoader
 from arxiv_zotero.utils.config_loader import ConfigError
 

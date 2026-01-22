@@ -20,30 +20,26 @@ class JournalRanker:
     """
 
     # 默认权重配置
-    DEFAULT_WEIGHTS = {
-        'cited_by_percentile': 0.50,
-        'h_index': 0.30,
-        'impact_factor': 0.20
-    }
+    DEFAULT_WEIGHTS = {"cited_by_percentile": 0.50, "h_index": 0.30, "impact_factor": 0.20}
 
     # 默认降级分数（无指标时的基准分）
     DEFAULT_SCORES = {
-        'cited_by_percentile': 50.0,  # 默认中等水平
-        'h_index': 10.0,  # 默认中等期刊
-        'impact_factor': 1.0  # 默认低影响因子
+        "cited_by_percentile": 50.0,  # 默认中等水平
+        "h_index": 10.0,  # 默认中等期刊
+        "impact_factor": 1.0,  # 默认低影响因子
     }
 
     # 指标归一化范围
     NORMALIZATION_RANGES = {
-        'cited_by_percentile': (0, 100),  # 已经是百分位数
-        'h_index': (1, 500),  # 常见期刊 h_index 范围
-        'impact_factor': (0.1, 50)  # 常见影响因子范围
+        "cited_by_percentile": (0, 100),  # 已经是百分位数
+        "h_index": (1, 500),  # 常见期刊 h_index 范围
+        "impact_factor": (0.1, 50),  # 常见影响因子范围
     }
 
     def __init__(
         self,
         weights: Optional[Dict[str, float]] = None,
-        default_scores: Optional[Dict[str, float]] = None
+        default_scores: Optional[Dict[str, float]] = None,
     ):
         """
         初始化排序器
@@ -83,11 +79,7 @@ class JournalRanker:
         # 限制在 [0, 1] 范围内
         return max(0.0, min(1.0, normalized))
 
-    def _calculate_metric_score(
-        self,
-        metrics: Dict,
-        metric_name: str
-    ) -> float:
+    def _calculate_metric_score(self, metrics: Dict, metric_name: str) -> float:
         """
         计算单个指标的得分
 
@@ -127,24 +119,17 @@ class JournalRanker:
         scores = {}
 
         # 计算各指标得分
-        for metric_name in ['cited_by_percentile', 'h_index', 'impact_factor']:
+        for metric_name in ["cited_by_percentile", "h_index", "impact_factor"]:
             scores[metric_name] = self._calculate_metric_score(metrics, metric_name)
 
         # 加权求和
-        composite_score = sum(
-            scores[name] * self.weights[name]
-            for name in scores
-        )
+        composite_score = sum(scores[name] * self.weights[name] for name in scores)
 
         logger.debug(f"Metric scores: {scores} -> Composite: {composite_score:.2f}")
 
         return composite_score
 
-    def rank_papers(
-        self,
-        papers: List[Dict],
-        metrics_map: Dict[str, Dict]
-    ) -> List[Dict]:
+    def rank_papers(self, papers: List[Dict], metrics_map: Dict[str, Dict]) -> List[Dict]:
         """
         对论文列表排序
 
@@ -158,24 +143,18 @@ class JournalRanker:
         # 为每篇论文计算综合评分
         for paper in papers:
             paper_id = (
-                paper.get('arxiv_id') or
-                paper.get('chinaxiv_id') or
-                hash(paper.get('title', ''))
+                paper.get("arxiv_id") or paper.get("chinaxiv_id") or hash(paper.get("title", ""))
             )
 
             metrics = metrics_map.get(paper_id, {})
             score = self.calculate_composite_score(metrics)
 
             # 添加评分到论文数据
-            paper['openalex_score'] = round(score, 2)
-            paper['openalex_metrics'] = metrics
+            paper["openalex_score"] = round(score, 2)
+            paper["openalex_metrics"] = metrics
 
         # 按评分降序排序
-        sorted_papers = sorted(
-            papers,
-            key=lambda p: p.get('openalex_score', 0),
-            reverse=True
-        )
+        sorted_papers = sorted(papers, key=lambda p: p.get("openalex_score", 0), reverse=True)
 
         logger.info(f"Ranked {len(sorted_papers)} papers by OpenAlex score")
 
@@ -191,15 +170,14 @@ class JournalRanker:
         Returns:
             统计信息字典
         """
-        scores = [p.get('openalex_score', 0) for p in papers]
+        scores = [p.get("openalex_score", 0) for p in papers]
 
         return {
-            'total_papers': len(papers),
-            'avg_score': sum(scores) / len(scores) if scores else 0,
-            'max_score': max(scores) if scores else 0,
-            'min_score': min(scores) if scores else 0,
-            'papers_with_metrics': sum(
-                1 for p in papers
-                if p.get('openalex_metrics', {}).get('source') != 'default'
-            )
+            "total_papers": len(papers),
+            "avg_score": sum(scores) / len(scores) if scores else 0,
+            "max_score": max(scores) if scores else 0,
+            "min_score": min(scores) if scores else 0,
+            "papers_with_metrics": sum(
+                1 for p in papers if p.get("openalex_metrics", {}).get("source") != "default"
+            ),
         }

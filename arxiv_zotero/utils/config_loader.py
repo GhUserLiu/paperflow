@@ -5,12 +5,13 @@
 """
 
 import os
-from typing import Optional
 from pathlib import Path
+from typing import Optional
 
 
 class ConfigError(Exception):
     """配置错误"""
+
     pass
 
 
@@ -18,16 +19,10 @@ class ConfigLoader:
     """统一配置加载器"""
 
     # 必需的环境变量
-    REQUIRED_VARS = [
-        "ZOTERO_LIBRARY_ID",
-        "ZOTERO_API_KEY"
-    ]
+    REQUIRED_VARS = ["ZOTERO_LIBRARY_ID", "ZOTERO_API_KEY"]
 
     # 可选的环境变量及其默认值
-    OPTIONAL_VARS = {
-        "TEMP_COLLECTION_KEY": None,  # 无默认值，必须提供
-        "ENABLE_CHINAXIV": "false"
-    }
+    OPTIONAL_VARS = {"TEMP_COLLECTION_KEY": None, "ENABLE_CHINAXIV": "false"}  # 无默认值，必须提供
 
     @classmethod
     def load_zotero_config(cls) -> dict:
@@ -60,10 +55,7 @@ class ConfigLoader:
         # 检查可选但重要的环境变量
         collection_key = os.getenv("TEMP_COLLECTION_KEY")
         if not collection_key:
-            raise ConfigError(
-                "缺少 TEMP_COLLECTION_KEY 环境变量\n"
-                "请提供目标 Zotero 集合的 KEY"
-            )
+            raise ConfigError("缺少 TEMP_COLLECTION_KEY 环境变量\n" "请提供目标 Zotero 集合的 KEY")
 
         config["TEMP_COLLECTION_KEY"] = collection_key
 
@@ -74,7 +66,7 @@ class ConfigLoader:
             "library_id": config["ZOTERO_LIBRARY_ID"],
             "api_key": config["ZOTERO_API_KEY"],
             "collection_key": config["TEMP_COLLECTION_KEY"],
-            "enable_chinaxiv": config["ENABLE_CHINAXIV"]
+            "enable_chinaxiv": config["ENABLE_CHINAXIV"],
         }
 
     @classmethod
@@ -139,6 +131,7 @@ def require_config(func):
             config = get_zotero_config()
             ...
     """
+
     def wrapper(*args, **kwargs):
         try:
             config = get_zotero_config()
@@ -150,4 +143,5 @@ def require_config(func):
             print("   2. 在 .env 中填入你的 Zotero 凭证")
             print("   3. 重新运行程序\n")
             raise
+
     return wrapper

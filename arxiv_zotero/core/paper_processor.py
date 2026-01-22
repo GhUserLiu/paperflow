@@ -6,9 +6,10 @@ from ..clients.zotero_client import ZoteroAPIError
 
 logger = logging.getLogger(__name__)
 
+
 class PaperProcessor:
     """Class to handle the processing of individual papers"""
-    
+
     def __init__(self, zotero_client, metadata_mapper, pdf_manager, summarizer, config):
         """
         Initialize the paper processor
@@ -42,7 +43,7 @@ class PaperProcessor:
         """Create a Zotero item from paper metadata"""
         try:
             mapped_data = self.metadata_mapper.map_metadata(paper)
-            return self.zotero_client.create_item('journalArticle', mapped_data)
+            return self.zotero_client.create_item("journalArticle", mapped_data)
         except ZoteroAPIError as e:
             logger.error(f"Error creating Zotero item: {str(e)}")
             return None
@@ -73,27 +74,31 @@ class PaperProcessor:
             # 全局搜索所有集合
 
             # Get the appropriate ID based on source
-            paper_source = paper.get('source', 'arxiv')
+            paper_source = paper.get("source", "arxiv")
             paper_id = None
             identifier_field = None
 
-            if paper_source == 'chinaxiv':
-                paper_id = paper.get('chinaxiv_id')
-                identifier_field = 'extra'  # ChinaXiv ID stored in extra field
+            if paper_source == "chinaxiv":
+                paper_id = paper.get("chinaxiv_id")
+                identifier_field = "extra"  # ChinaXiv ID stored in extra field
             else:
-                paper_id = paper.get('arxiv_id')
-                identifier_field = 'archiveLocation'  # arXiv ID stored in archiveLocation
+                paper_id = paper.get("arxiv_id")
+                identifier_field = "archiveLocation"  # arXiv ID stored in archiveLocation
 
             if paper_id:
                 existing_item_key = self.zotero_client.check_duplicate(
                     identifier=paper_id,
                     identifier_field=identifier_field,
-                    collection_only=self.collection_only_dupcheck
+                    collection_only=self.collection_only_dupcheck,
                 )
                 if existing_item_key:
                     dup_type = "collection-only" if self.collection_only_dupcheck else "global"
-                    logger.info(f"Paper {paper_id} ({paper_source}) already exists in library ({dup_type}, item: {existing_item_key}), skipping")
-                    return True  # Return True to indicate successful handling (skipped as duplicate)
+                    logger.info(
+                        f"Paper {paper_id} ({paper_source}) already exists in library ({dup_type}, item: {existing_item_key}), skipping"
+                    )
+                    return (
+                        True  # Return True to indicate successful handling (skipped as duplicate)
+                    )
 
             logger.info(f"Processing paper: {paper_id if paper_id else 'unknown'} ({paper_source})")
 
@@ -113,57 +118,51 @@ class PaperProcessor:
                 try:
                     # Download PDF
                     pdf_path, filename = await self.pdf_manager.download_pdf(
-                        url=paper['pdf_url'],
-                        title=paper['title']
+                        url=paper["pdf_url"], title=paper["title"]
                     )
-                    
+
                     if not pdf_path or not filename:
                         logger.error("Failed to download PDF")
                         return False
-                    
+
                     # Create and upload attachment
-                    attachment_template = self.zotero_client.zot.item_template('attachment', 'imported_file')
+                    attachment_template = self.zotero_client.zot.item_template(
+                        "attachment", "imported_file"
+                    )
                     attachment_template.update(
                         self.pdf_manager.prepare_attachment_template(
-                            filename=filename,
-                            parent_item=item_key,
-                            filepath=pdf_path
+                            filename=filename, parent_item=item_key, filepath=pdf_path
                         )
                     )
-                    
+
                     # Upload the attachment
                     result = self.zotero_client.zot.upload_attachments([attachment_template])
-                    
+
                     if not result:
                         logger.error("No result returned from upload_attachments")
                         return False
-                    
+
                     # Check attachment creation status
                     has_attachment = (
-                        len(result.get('success', [])) > 0 or 
-                        len(result.get('unchanged', [])) > 0
+                        len(result.get("success", [])) > 0 or len(result.get("unchanged", [])) > 0
                     )
-                    
+
                     if not has_attachment:
-                        if len(result.get('failure', [])) > 0:
+                        if len(result.get("failure", [])) > 0:
                             logger.error(f"Failed to upload attachment. Response: {result}")
                         else:
                             logger.warning(f"Unexpected attachment result: {result}")
                         return False
-                    
+
                     logger.info(f"Successfully processed PDF attachment for item {item_key}")
 
-                    if self.summarizer and self.config.get('summarizer', {}).get('enabled'):
-                        await self.summarizer.summarize(
-                            pdf_path, 
-                            self.zotero_client,
-                            item_key
-                        )
+                    if self.summarizer and self.config.get("summarizer", {}).get("enabled"):
+                        await self.summarizer.summarize(pdf_path, self.zotero_client, item_key)
 
                 except Exception as e:
                     logger.error(f"Error in PDF processing: {str(e)}")
                     return False
-            
+
             return True
 
         except Exception as e:

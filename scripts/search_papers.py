@@ -18,20 +18,20 @@ Flexible arXiv Paper Search Script (Independent from Daily Tasks)
     python search_papers.py --keywords "reinforcement learning" --no-pdf
 """
 
+import argparse
 import asyncio
-import sys
+import io
 import os
+import sys
 from datetime import datetime
 from typing import Optional
-import argparse
-import io
 
 # Fix Windows encoding issue
-if sys.platform == 'win32':
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+if sys.platform == "win32":
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
 
-from arxiv_zotero import ArxivZoteroCollector, ArxivSearchParams
+from arxiv_zotero import ArxivSearchParams, ArxivZoteroCollector
 from arxiv_zotero.utils import ConfigLoader
 from arxiv_zotero.utils.errors import ConfigError
 
@@ -44,7 +44,7 @@ def load_config():
             config["library_id"],
             config["api_key"],
             config["collection_key"],
-            config["enable_chinaxiv"]
+            config["enable_chinaxiv"],
         )
     except ConfigError as e:
         print(f"\n❌ 配置错误: {e}")
@@ -111,7 +111,7 @@ async def search_papers(
     openalex_weights: Optional[dict] = None,
     target_results: Optional[int] = None,
     collection_only_dupcheck: bool = False,
-    auto_preload: bool = True
+    auto_preload: bool = True,
 ):
     """
     搜索并保存论文到指定集合
@@ -128,9 +128,9 @@ async def search_papers(
         collection_only_dupcheck: 是否仅在目标集合内查重
         auto_preload: 是否自动预热缓存（默认 True）
     """
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("论文灵活搜索工具 | Flexible Search")
-    print("="*70)
+    print("=" * 70)
     print(f"开始时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"搜索关键词: {keywords}")
     print(f"最大结果数: {max_results}")
@@ -143,7 +143,7 @@ async def search_papers(
         print(f"  权重配置: {openalex_weights}")
     print(f"查重模式: {'集合内（更快）' if collection_only_dupcheck else '全局（更安全）'}")
     print(f"下载 PDF: {'是' if download_pdfs else '否'}")
-    print("="*70 + "\n")
+    print("=" * 70 + "\n")
 
     try:
         # Initialize collector with ChinaXiv and OpenAlex support
@@ -155,7 +155,7 @@ async def search_papers(
             enable_chinaxiv=enable_chinaxiv,
             enable_openalex_ranking=enable_openalex_ranking,
             openalex_weights=openalex_weights,
-            collection_only_dupcheck=collection_only_dupcheck
+            collection_only_dupcheck=collection_only_dupcheck,
         )
 
         # 自动预热缓存（如果启用 OpenAlex 且缓存为空）
@@ -221,10 +221,7 @@ async def search_papers(
             print(f"   预估缓存命中率: {cache_hit_rate*100:.0f}%\n")
 
             # Configure search parameters with initial results
-            search_params = ArxivSearchParams(
-                keywords=[keywords],
-                max_results=initial_results
-            )
+            search_params = ArxivSearchParams(keywords=[keywords], max_results=initial_results)
 
             print(f"正在搜索论文来源...")
             print(f"提示: 这是独立的搜索脚本，不影响每日定时任务\n")
@@ -234,7 +231,7 @@ async def search_papers(
             successful, failed = await collector.run_collection_async(
                 search_params=search_params,
                 download_pdfs=download_pdfs,
-                use_all_sources=enable_chinaxiv  # 启用多来源搜索
+                use_all_sources=enable_chinaxiv,  # 启用多来源搜索
             )
 
             # 检查是否需要补充
@@ -256,24 +253,20 @@ async def search_papers(
                     additional_multiplier = 1.5
 
                 needed = target_results - successful
-                additional_results = min(
-                    int(needed * additional_multiplier),
-                    100  # 最多再搜100篇
-                )
+                additional_results = min(int(needed * additional_multiplier), 100)  # 最多再搜100篇
 
                 print(f"补充搜索: 再搜索 {additional_results} 篇\n")
 
                 # 新的搜索参数（避免重复）
                 search_params补充 = ArxivSearchParams(
-                    keywords=[keywords],
-                    max_results=additional_results
+                    keywords=[keywords], max_results=additional_results
                 )
 
                 # 继续采集
                 additional_successful, additional_failed = await collector.run_collection_async(
                     search_params=search_params补充,
                     download_pdfs=download_pdfs,
-                    use_all_sources=enable_chinaxiv
+                    use_all_sources=enable_chinaxiv,
                 )
 
                 successful += additional_successful
@@ -288,10 +281,7 @@ async def search_papers(
         else:
             # 配置搜索参数（无日期过滤 - 获取最新论文）
             # 配置搜索参数（无日期过滤 - 获取最新论文）
-            search_params = ArxivSearchParams(
-                keywords=[keywords],
-                max_results=max_results
-            )
+            search_params = ArxivSearchParams(keywords=[keywords], max_results=max_results)
 
             print(f"正在搜索论文来源...")
             print(f"提示: 这是独立的搜索脚本，不影响每日定时任务\n")
@@ -301,7 +291,7 @@ async def search_papers(
             successful, failed = await collector.run_collection_async(
                 search_params=search_params,
                 download_pdfs=download_pdfs,
-                use_all_sources=enable_chinaxiv  # 启用多来源搜索
+                use_all_sources=enable_chinaxiv,  # 启用多来源搜索
             )
 
         print(f"\n{'='*70}")
@@ -313,13 +303,14 @@ async def search_papers(
         print(f"  失败: {failed} 篇")
         print(f"  保存位置: Temp 集合 ({collection_key})")
         print("\n提示: 重复检测已启用，已存在的论文会被跳过")
-        print("="*70 + "\n")
+        print("=" * 70 + "\n")
 
         return successful, failed
 
     except Exception as e:
         print(f"\n❌ 错误 | Error: {e}")
         import traceback
+
         traceback.print_exc()
         return 0, 0
 
@@ -330,7 +321,7 @@ def main():
     ZOTERO_LIBRARY_ID, ZOTERO_API_KEY, TEMP_COLLECTION_KEY, ENABLE_CHINAXIV = load_config()
 
     parser = argparse.ArgumentParser(
-        description='灵活的 arXiv 论文搜索工具（独立脚本）',
+        description="灵活的 arXiv 论文搜索工具（独立脚本）",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 示例 | Examples:
@@ -369,78 +360,68 @@ def main():
   - OpenAlex 排序按期刊影响力指标综合评分，优先显示高质量论文
   - 自动预热：启用 OpenAlex 时首次运行会自动预加载常见期刊缓存（15-30秒）
   - 如需禁用自动预热，使用 --no-auto-preload 参数
-        """
+        """,
     )
 
-    parser.add_argument(
-        '--keywords',
-        type=str,
-        help='搜索关键词（例如: "autonomous driving"）'
-    )
+    parser.add_argument("--keywords", type=str, help='搜索关键词（例如: "autonomous driving"）')
 
     parser.add_argument(
-        '--max-results',
-        type=int,
-        default=20,
-        metavar='N',
-        help='最大结果数（默认: 20）'
+        "--max-results", type=int, default=20, metavar="N", help="最大结果数（默认: 20）"
     )
 
-    parser.add_argument(
-        '--no-pdf',
-        action='store_true',
-        help='不下载 PDF 文件'
-    )
+    parser.add_argument("--no-pdf", action="store_true", help="不下载 PDF 文件")
 
     parser.add_argument(
-        '--collection',
+        "--collection",
         type=str,
         default=None,
-        help='目标集合 KEY（默认: TEMP_COLLECTION_KEY 环境变量）'
+        help="目标集合 KEY（默认: TEMP_COLLECTION_KEY 环境变量）",
     )
 
     parser.add_argument(
-        '--enable-chinaxiv',
-        action='store_true',
-        help='启用 ChinaXiv 来源搜索（同时从 arXiv 和 ChinaXiv 检索）'
+        "--enable-chinaxiv",
+        action="store_true",
+        help="启用 ChinaXiv 来源搜索（同时从 arXiv 和 ChinaXiv 检索）",
     )
 
     parser.add_argument(
-        '--enable-openalex',
-        action='store_true',
-        help='启用 OpenAlex 期刊指标排序（按被引百分位、h指数、影响因子综合评分）'
+        "--enable-openalex",
+        action="store_true",
+        help="启用 OpenAlex 期刊指标排序（按被引百分位、h指数、影响因子综合评分）",
     )
 
     parser.add_argument(
-        '--openalex-weights',
+        "--openalex-weights",
         type=str,
-        help='OpenAlex 指标权重配置（JSON 格式，例如: \'{"cited_by_percentile": 0.5, "h_index": 0.3, "impact_factor": 0.2}\'）'
+        help='OpenAlex 指标权重配置（JSON 格式，例如: \'{"cited_by_percentile": 0.5, "h_index": 0.3, "impact_factor": 0.2}\'）',
     )
 
     parser.add_argument(
-        '--target-results',
+        "--target-results",
         type=int,
-        metavar='N',
-        help='目标保存数量（自动补充到该数量，例如: --target-results 50）'
+        metavar="N",
+        help="目标保存数量（自动补充到该数量，例如: --target-results 50）",
     )
 
     parser.add_argument(
-        '--collection-only-dupcheck',
-        action='store_true',
-        help='仅在该集合内查重（更快，但允许跨集合重复）'
+        "--collection-only-dupcheck",
+        action="store_true",
+        help="仅在该集合内查重（更快，但允许跨集合重复）",
     )
 
     parser.add_argument(
-        '--no-auto-preload',
-        action='store_true',
-        help='禁用自动缓存预热（默认：启用 OpenAlex 时自动预热）'
+        "--no-auto-preload",
+        action="store_true",
+        help="禁用自动缓存预热（默认：启用 OpenAlex 时自动预热）",
     )
 
     args = parser.parse_args()
 
     # 验证参数
     if not args.keywords:
-        parser.error("必须提供 --keywords 参数\n示例: python search_papers.py --keywords \"autonomous driving\"")
+        parser.error(
+            '必须提供 --keywords 参数\n示例: python search_papers.py --keywords "autonomous driving"'
+        )
 
     # 使用默认 collection_key 如果未指定
     if args.collection is None:
@@ -451,6 +432,7 @@ def main():
     if args.openalex_weights:
         try:
             import json
+
             openalex_weights = json.loads(args.openalex_weights)
             # 验证权重总和
             total_weight = sum(openalex_weights.values())
@@ -463,18 +445,20 @@ def main():
 
     # 运行搜索
     try:
-        successful, failed = asyncio.run(search_papers(
-            keywords=args.keywords,
-            max_results=args.max_results,
-            download_pdfs=not args.no_pdf,
-            collection_key=args.collection,
-            enable_chinaxiv=args.enable_chinaxiv or ENABLE_CHINAXIV,
-            enable_openalex_ranking=args.enable_openalex,
-            openalex_weights=openalex_weights,
-            target_results=args.target_results,
-            collection_only_dupcheck=args.collection_only_dupcheck,
-            auto_preload=not args.no_auto_preload
-        ))
+        successful, failed = asyncio.run(
+            search_papers(
+                keywords=args.keywords,
+                max_results=args.max_results,
+                download_pdfs=not args.no_pdf,
+                collection_key=args.collection,
+                enable_chinaxiv=args.enable_chinaxiv or ENABLE_CHINAXIV,
+                enable_openalex_ranking=args.enable_openalex,
+                openalex_weights=openalex_weights,
+                target_results=args.target_results,
+                collection_only_dupcheck=args.collection_only_dupcheck,
+                auto_preload=not args.no_auto_preload,
+            )
+        )
 
         # 根据结果设置退出码
         if failed > 0:

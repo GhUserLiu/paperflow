@@ -7,6 +7,7 @@ pytest 配置和共享 fixtures
 import os
 import sys
 from pathlib import Path
+
 import pytest  # 必须在文件开头导入
 
 # 添加项目根目录到路径
@@ -19,22 +20,22 @@ def pytest_configure(config):
     import pytest
 
     # 自定义标记
-    config.addinivalue_line(
-        "markers", "unit: 单元测试标记"
-    )
-    config.addinivalue_line(
-        "markers", "integration: 集成测试标记"
-    )
-    config.addinivalue_line(
-        "markers", "slow: 慢速测试标记（需要网络或外部API）"
-    )
+    config.addinivalue_line("markers", "unit: 单元测试标记")
+    config.addinivalue_line("markers", "integration: 集成测试标记")
+    config.addinivalue_line("markers", "slow: 慢速测试标记（需要网络或外部API）")
 
 
 @pytest.fixture(autouse=True)
 def clear_env_before_tests(monkeypatch):
     """在每个测试前清除环境变量，防止 .env 文件干扰测试"""
     # 清除所有可能的环境变量
-    for key in ["ZOTERO_LIBRARY_ID", "ZOTERO_API_KEY", "TEMP_COLLECTION_KEY", "ENABLE_CHINAXIV", "COLLECTION_KEY"]:
+    for key in [
+        "ZOTERO_LIBRARY_ID",
+        "ZOTERO_API_KEY",
+        "TEMP_COLLECTION_KEY",
+        "ENABLE_CHINAXIV",
+        "COLLECTION_KEY",
+    ]:
         monkeypatch.delenv(key, raising=False)
 
     yield
@@ -68,7 +69,7 @@ def sample_paper_data():
         "arxiv_id": "2401.12345",
         "doi": "10.1234/test.doi",
         "pdf_url": "https://arxiv.org/pdf/2401.12345.pdf",
-        "journal_ref": "Test Journal vol 123 pages 456-789"
+        "journal_ref": "Test Journal vol 123 pages 456-789",
     }
 
 
@@ -80,7 +81,7 @@ def sample_openalex_metrics():
         "h_index": 250,
         "impact_factor": 14.255,
         "journal_name": "Nature",
-        "source": "openalex_work_api"
+        "source": "openalex_work_api",
     }
 
 

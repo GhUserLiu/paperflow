@@ -1,22 +1,26 @@
+import logging
+import time
 from collections import deque
 from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
-from pyzotero import zotero
-from typing import List, Dict, Optional, Tuple
-import logging
+from typing import Dict, List, Optional, Tuple
+
 import requests
-import time
+from pyzotero import zotero
 
 logger = logging.getLogger(__name__)
 
+
 class ZoteroAPIError(Exception):
     """Custom exception for Zotero API errors"""
+
     pass
+
 
 class ZoteroClient:
     """Class to handle all Zotero-specific operations"""
-    
+
     def __init__(self, library_id: str, api_key: str, collection_key: str = None):
         """
         Initialize the Zotero client
@@ -26,16 +30,15 @@ class ZoteroClient:
             api_key: Zotero API key
             collection_key: Optional collection key to add items to
         """
-        self.zot = zotero.Zotero(library_id, 'user', api_key)
+        self.zot = zotero.Zotero(library_id, "user", api_key)
         self.collection_key = collection_key
 
         # Configure HTTP session for better performance
         self.session = requests.Session()
-        self.session.mount('https://', requests.adapters.HTTPAdapter(
-            max_retries=3,
-            pool_connections=10,
-            pool_maxsize=20
-        ))
+        self.session.mount(
+            "https://",
+            requests.adapters.HTTPAdapter(max_retries=3, pool_connections=10, pool_maxsize=20),
+        )
 
         # ========== 优化: 缓存和速率限制 ==========
         # arXiv ID 缓存,避免重复请求
@@ -111,15 +114,15 @@ class ZoteroClient:
             logger.info("刷新 arXiv ID 缓存...")
             self._rate_limit()  # 速率限制
 
-            results = self.zot.items(sort='dateAdded', direction='desc', limit=500)
+            results = self.zot.items(sort="dateAdded", direction="desc", limit=500)
 
             # 构建缓存: {arxiv_id: item_key}
             self._arxiv_id_cache = {}
             for item in results:
-                item_data = item.get('data', item) if isinstance(item, dict) else item
-                arxiv_id = item_data.get('archiveLocation', '')
+                item_data = item.get("data", item) if isinstance(item, dict) else item
+                arxiv_id = item_data.get("archiveLocation", "")
                 if arxiv_id:
-                    self._arxiv_id_cache[arxiv_id.strip()] = item_data.get('key')
+                    self._arxiv_id_cache[arxiv_id.strip()] = item_data.get("key")
 
             self._cache_timestamp = time.time()
             self._track_request()
@@ -145,22 +148,22 @@ class ZoteroClient:
         """
         elapsed = time.time() - self._start_time
         return {
-            'total_requests': self._request_count,
-            'elapsed_time': elapsed,
-            'rate': self._request_count / elapsed if elapsed > 0 else 0,
-            'cache_size': len(self._arxiv_id_cache)
+            "total_requests": self._request_count,
+            "elapsed_time": elapsed,
+            "rate": self._request_count / elapsed if elapsed > 0 else 0,
+            "cache_size": len(self._arxiv_id_cache),
         }
 
     def _validate_collection(self):
         """
         Validate that the specified collection exists
-        
+
         Raises:
             ValueError: If collection does not exist
         """
         try:
             collections = self.zot.collections()
-            if not any(col['key'] == self.collection_key for col in collections):
+            if not any(col["key"] == self.collection_key for col in collections):
                 raise ValueError(f"Collection {self.collection_key} does not exist")
             logger.info(f"Successfully validated collection {self.collection_key}")
         except Exception as e:
@@ -186,8 +189,8 @@ class ZoteroClient:
             response = self.zot.create_items([template])
             self._track_request()  # 统计请求
 
-            if 'successful' in response and response['successful']:
-                item_key = list(response['successful'].values())[0]['key']
+            if "successful" in response and response["successful"]:
+                item_key = list(response["successful"].values())[0]["key"]
                 logger.info(f"Successfully created item with key: {item_key}")
                 return item_key
             else:
@@ -231,38 +234,39 @@ class ZoteroClient:
     def upload_attachment(self, parent_key: str, filepath: Path, filename: str) -> bool:
         """
         Upload a file attachment to a Zotero item
-        
+
         Args:
             parent_key: Key of the parent item
             filepath: Path to the file to upload
             filename: Name to use for the uploaded file
-            
+
         Returns:
             bool: True if successful, False otherwise
         """
         try:
             # Create attachment item template
-            attachment = self.zot.item_template('attachment', 'imported_file')
-            attachment.update({
-                'title': filename,
-                'parentItem': parent_key,
-                'contentType': 'application/pdf',
-                'filename': str(filepath)
-            })
-            
+            attachment = self.zot.item_template("attachment", "imported_file")
+            attachment.update(
+                {
+                    "title": filename,
+                    "parentItem": parent_key,
+                    "contentType": "application/pdf",
+                    "filename": str(filepath),
+                }
+            )
+
             # Upload the attachment
             result = self.zot.upload_attachments([attachment])
-            
+
             # Check if the attachment was created
             if result:
                 has_attachment = (
-                    len(result.get('success', [])) > 0 or 
-                    len(result.get('unchanged', [])) > 0
+                    len(result.get("success", [])) > 0 or len(result.get("unchanged", [])) > 0
                 )
                 if has_attachment:
                     logger.info(f"Successfully uploaded attachment for item {parent_key}")
                     return True
-                elif len(result.get('failure', [])) > 0:
+                elif len(result.get("failure", [])) > 0:
                     logger.error(f"Failed to upload attachment. Response: {result}")
                     return False
                 else:
@@ -276,7 +280,9 @@ class ZoteroClient:
             logger.error(f"Error uploading attachment: {str(e)}")
             raise ZoteroAPIError(f"Failed to upload attachment: {str(e)}")
 
-    def check_duplicate(self, identifier: str, identifier_field: str = 'DOI', collection_only: bool = False) -> Optional[str]:
+    def check_duplicate(
+        self, identifier: str, identifier_field: str = "DOI", collection_only: bool = False
+    ) -> Optional[str]:
         """
         Check if an item already exists in the library (优化版:使用缓存)
 
@@ -302,28 +308,29 @@ class ZoteroClient:
                 self._rate_limit()
                 # 只查询指定集合，限制为100篇（足够快）
                 results = self.zot.items(
-                    collection=self.collection_key,
-                    sort='dateAdded',
-                    direction='desc',
-                    limit=100
+                    collection=self.collection_key, sort="dateAdded", direction="desc", limit=100
                 )
                 self._track_request()
 
                 if results:
                     for item in results:
-                        item_data = item.get('data', item) if isinstance(item, dict) else item
-                        field_value = item_data.get(identifier_field, '')
+                        item_data = item.get("data", item) if isinstance(item, dict) else item
+                        field_value = item_data.get(identifier_field, "")
 
                         if field_value and str(field_value).strip() == str(identifier).strip():
-                            logger.info(f"Found duplicate {identifier_field} '{identifier}' in item {item_data.get('key')} (collection-only)")
-                            return item_data.get('key')
+                            logger.info(
+                                f"Found duplicate {identifier_field} '{identifier}' in item {item_data.get('key')} (collection-only)"
+                            )
+                            return item_data.get("key")
 
-                logger.debug(f"No duplicate found for {identifier_field}='{identifier}' in collection {self.collection_key}")
+                logger.debug(
+                    f"No duplicate found for {identifier_field}='{identifier}' in collection {self.collection_key}"
+                )
                 return None
 
             # 全局查重模式（原有逻辑）
             # 只对 archiveLocation 字段使用缓存优化
-            if identifier_field == 'archiveLocation':
+            if identifier_field == "archiveLocation":
                 # 检查缓存是否有效,无效则刷新
                 if not self._is_cache_valid():
                     self._refresh_arxiv_id_cache()
@@ -331,25 +338,31 @@ class ZoteroClient:
                 # 从缓存查找
                 item_key = self._arxiv_id_cache.get(identifier.strip())
                 if item_key:
-                    logger.info(f"从缓存找到重复 {identifier_field} '{identifier}' → item {item_key}")
+                    logger.info(
+                        f"从缓存找到重复 {identifier_field} '{identifier}' → item {item_key}"
+                    )
                 return item_key
 
             # 其他字段仍使用原方法
             logger.debug(f"缓存未命中或非 archiveLocation 字段,使用 API 查询")
             self._rate_limit()
-            results = self.zot.items(sort='dateAdded', direction='desc', limit=500)
+            results = self.zot.items(sort="dateAdded", direction="desc", limit=500)
             self._track_request()
 
             if results:
                 for item in results:
-                    item_data = item.get('data', item) if isinstance(item, dict) else item
-                    field_value = item_data.get(identifier_field, '')
+                    item_data = item.get("data", item) if isinstance(item, dict) else item
+                    field_value = item_data.get(identifier_field, "")
 
                     if field_value and str(field_value).strip() == str(identifier).strip():
-                        logger.info(f"Found duplicate {identifier_field} '{identifier}' in item {item_data.get('key')}")
-                        return item_data.get('key')
+                        logger.info(
+                            f"Found duplicate {identifier_field} '{identifier}' in item {item_data.get('key')}"
+                        )
+                        return item_data.get("key")
 
-            logger.debug(f"No duplicate found for {identifier_field}='{identifier}' in recent 500 items")
+            logger.debug(
+                f"No duplicate found for {identifier_field}='{identifier}' in recent 500 items"
+            )
             return None
 
         except Exception as e:
@@ -359,10 +372,10 @@ class ZoteroClient:
     def delete_item(self, item_key: str) -> bool:
         """
         Delete an item from the library
-        
+
         Args:
             item_key: Key of the item to delete
-            
+
         Returns:
             bool: True if successful, False otherwise
         """
@@ -377,22 +390,21 @@ class ZoteroClient:
     def create_collection(self, name: str, parent_collection: str = None) -> Optional[str]:
         """
         Create a new collection
-        
+
         Args:
             name: Name of the collection
             parent_collection: Optional parent collection key
-            
+
         Returns:
             Optional[str]: Collection key if successful, None otherwise
         """
         try:
-            collections = self.zot.create_collections([{
-                'name': name,
-                'parentCollection': parent_collection
-            }])
-            
+            collections = self.zot.create_collections(
+                [{"name": name, "parentCollection": parent_collection}]
+            )
+
             if collections:
-                collection_key = collections['successful']['0']['key']
+                collection_key = collections["successful"]["0"]["key"]
                 logger.info(f"Successfully created collection: {collection_key}")
                 return collection_key
             return None

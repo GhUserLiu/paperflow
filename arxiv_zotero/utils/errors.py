@@ -5,27 +5,31 @@
 """
 
 import functools
-import time
 import logging
-from typing import Callable, Any
+import time
+from typing import Any, Callable
 
 T = None  # Type placeholder for generic functions
 logger = logging.getLogger(__name__)
 
 # ==================== 自定义异常类 ====================
 
+
 class ZoteroConnectorError(Exception):
     """基础异常类 - 所有自定义异常的父类"""
+
     pass
 
 
 class ConfigError(ZoteroConnectorError):
     """配置错误"""
+
     pass
 
 
 class ZoteroAPIError(ZoteroConnectorError):
     """Zotero API 错误"""
+
     def __init__(self, message: str, status_code: int = None, response: str = None):
         super().__init__(message)
         self.status_code = status_code
@@ -42,6 +46,7 @@ class ZoteroAPIError(ZoteroConnectorError):
 
 class PaperDownloadError(ZoteroConnectorError):
     """论文下载失败"""
+
     def __init__(self, paper_title: str, url: str, reason: str):
         self.paper_title = paper_title
         self.url = url
@@ -51,6 +56,7 @@ class PaperDownloadError(ZoteroConnectorError):
 
 class ZoteroUploadError(ZoteroConnectorError):
     """Zotero 上传失败"""
+
     def __init__(self, paper_title: str, reason: str):
         self.paper_title = paper_title
         self.reason = reason
@@ -59,6 +65,7 @@ class ZoteroUploadError(ZoteroConnectorError):
 
 class APITimeoutError(ZoteroConnectorError):
     """API 超时"""
+
     def __init__(self, api_name: str, timeout: float):
         self.api_name = api_name
         self.timeout = timeout
@@ -67,6 +74,7 @@ class APITimeoutError(ZoteroConnectorError):
 
 class DuplicatePaperError(ZoteroConnectorError):
     """重复论文错误"""
+
     def __init__(self, paper_id: str, collection: str = None):
         self.paper_id = paper_id
         self.collection = collection
@@ -78,24 +86,24 @@ class DuplicatePaperError(ZoteroConnectorError):
 
 class ChinaXivError(ZoteroConnectorError):
     """ChinaXiv API 错误"""
+
     pass
 
 
 class OpenAlexError(ZoteroConnectorError):
     """OpenAlex API 错误"""
+
     pass
 
 
 # ==================== 重试装饰器 ====================
 
 
-
-
 def retry_on_error(
     max_attempts: int = 3,
     backoff_factor: float = 2.0,
     exceptions: tuple = (Exception,),
-    logger: logging.Logger = None
+    logger: logging.Logger = None,
 ):
     """
     智能重试装饰器
@@ -114,6 +122,7 @@ def retry_on_error(
         def fetch_data(url):
             return requests.get(url)
     """
+
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -128,16 +137,13 @@ def retry_on_error(
 
                     if attempt == max_attempts:
                         # 最后一次尝试失败
-                        logger.error(
-                            f"{func.__name__} 失败（已重试 {max_attempts} 次）: {e}"
-                        )
+                        logger.error(f"{func.__name__} 失败（已重试 {max_attempts} 次）: {e}")
                         raise
 
                     # 计算等待时间
                     wait_time = backoff_factor ** (attempt - 1)
                     logger.warning(
-                        f"{func.__name__} 第 {attempt} 次尝试失败: {e}，"
-                        f"{wait_time}秒后重试..."
+                        f"{func.__name__} 第 {attempt} 次尝试失败: {e}，" f"{wait_time}秒后重试..."
                     )
                     time.sleep(wait_time)
 
@@ -145,10 +151,12 @@ def retry_on_error(
             raise last_exception
 
         return wrapper
+
     return decorator
 
 
 # ==================== 错误处理工具函数 ====================
+
 
 def handle_error(error: Exception, context: str = "") -> None:
     """
@@ -197,6 +205,7 @@ def safe_execute(func, default=None):
 
 # ==================== 便捷函数 ====================
 
+
 def log_and_raise(error: Exception, context: str = "") -> None:
     """
     记录错误并重新抛出
@@ -220,6 +229,7 @@ def ignore_error(func, default=None):
     Returns:
         装饰后的函数
     """
+
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         try:
@@ -227,4 +237,5 @@ def ignore_error(func, default=None):
         except Exception as e:
             logger.debug(f"{func.__name__} 被忽略的错误: {e}")
             return default
+
     return wrapper

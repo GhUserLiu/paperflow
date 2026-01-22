@@ -3,13 +3,14 @@ OpenAlex API Client
 OpenAlex API 客户端 - 用于查询期刊指标数据
 """
 
-import logging
-import requests
-import time
 import json
+import logging
 import re
-from typing import Dict, List, Optional
+import time
 from pathlib import Path
+from typing import Dict, List, Optional
+
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +37,7 @@ class OpenAlexClient:
 
     # 默认指标值（降级使用）
     DEFAULT_PERCENTILE = 50.0  # 默认中等被引百分位
-    DEFAULT_H_INDEX = 10.0     # 默认中等期刊 h 指数
+    DEFAULT_H_INDEX = 10.0  # 默认中等期刊 h 指数
     DEFAULT_IMPACT_FACTOR = 1.0  # 默认低影响因子
 
     def __init__(self, cache_dir: Optional[Path] = None):
@@ -46,16 +47,15 @@ class OpenAlexClient:
         Args:
             cache_dir: 缓存目录路径，默认为 config/journal_metrics_cache.json
         """
-        self.cache_dir = cache_dir or Path(__file__).parent.parent.parent / 'config'
-        self.cache_file = self.cache_dir / 'journal_metrics_cache.json'
+        self.cache_dir = cache_dir or Path(__file__).parent.parent.parent / "config"
+        self.cache_file = self.cache_dir / "journal_metrics_cache.json"
         self.metrics_cache = {}
 
         # 初始化 HTTP session
         self.session = requests.Session()
-        self.session.headers.update({
-            'User-Agent': 'arxiv-zotero-connector',
-            'Accept': 'application/json'
-        })
+        self.session.headers.update(
+            {"User-Agent": "arxiv-zotero-connector", "Accept": "application/json"}
+        )
 
         # 加载本地缓存
         self._load_cache()
@@ -66,11 +66,11 @@ class OpenAlexClient:
         """从本地文件加载期刊指标缓存"""
         try:
             if self.cache_file.exists():
-                with open(self.cache_file, 'r', encoding='utf-8') as f:
+                with open(self.cache_file, "r", encoding="utf-8") as f:
                     data = json.load(f)
                     # 兼容新旧格式
-                    if isinstance(data, dict) and 'metrics' in data:
-                        self.metrics_cache = data['metrics']
+                    if isinstance(data, dict) and "metrics" in data:
+                        self.metrics_cache = data["metrics"]
                     else:
                         self.metrics_cache = data
                 logger.info(f"Loaded {len(self.metrics_cache)} cached journal metrics")
@@ -87,14 +87,14 @@ class OpenAlexClient:
             self.cache_dir.mkdir(parents=True, exist_ok=True)
             # 使用新格式（包含元数据）
             data = {
-                'metadata': {
-                    'last_updated': time.strftime('%Y-%m-%dT%H:%M:%SZ'),
-                    'total_entries': len(self.metrics_cache),
-                    'version': '1.0'
+                "metadata": {
+                    "last_updated": time.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                    "total_entries": len(self.metrics_cache),
+                    "version": "1.0",
                 },
-                'metrics': self.metrics_cache
+                "metrics": self.metrics_cache,
             }
-            with open(self.cache_file, 'w', encoding='utf-8') as f:
+            with open(self.cache_file, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
             logger.debug(f"Saved {len(self.metrics_cache)} journal metrics to cache")
         except Exception as e:
@@ -119,7 +119,7 @@ class OpenAlexClient:
             return None
 
         # 标准化 DOI（移除前缀）
-        clean_doi = doi.replace('https://doi.org/', '').replace('http://doi.org/', '').strip()
+        clean_doi = doi.replace("https://doi.org/", "").replace("http://doi.org/", "").strip()
 
         # 检查缓存
         cache_key = f"doi:{clean_doi}"
@@ -185,9 +185,9 @@ class OpenAlexClient:
             if response and response.status_code == 200:
                 data = response.json()
 
-                if data.get('results') and len(data['results']) > 0:
+                if data.get("results") and len(data["results"]) > 0:
                     # 获取最匹配的期刊（第一个结果）
-                    source = data['results'][0]
+                    source = data["results"][0]
                     metrics = self._extract_metrics_from_source(source)
 
                     if metrics:
@@ -220,7 +220,7 @@ class OpenAlexClient:
                 response = self.session.get(url, timeout=self.TIMEOUT)
 
                 if response.status_code == 429:  # Rate limited
-                    wait_time = 2 ** attempt  # 指数退避
+                    wait_time = 2**attempt  # 指数退避
                     logger.warning(f"Rate limited, waiting {wait_time}s...")
                     time.sleep(wait_time)
                     continue
@@ -246,17 +246,17 @@ class OpenAlexClient:
         """
         try:
             # 获取期刊来源信息
-            source = work_data.get('primary_source')
+            source = work_data.get("primary_source")
             if not source:
                 return None
 
             # 提取指标
             metrics = {
-                'cited_by_percentile': work_data.get('cited_by_percentile', {}).get('value'),
-                'h_index': source.get('h_index'),
-                'impact_factor': source.get('impact_factor'),
-                'journal_name': source.get('display_name'),
-                'source': 'openalex_work_api'
+                "cited_by_percentile": work_data.get("cited_by_percentile", {}).get("value"),
+                "h_index": source.get("h_index"),
+                "impact_factor": source.get("impact_factor"),
+                "journal_name": source.get("display_name"),
+                "source": "openalex_work_api",
             }
 
             # 过滤 None 值
@@ -278,10 +278,10 @@ class OpenAlexClient:
         """
         try:
             metrics = {
-                'h_index': source_data.get('h_index'),
-                'impact_factor': source_data.get('impact_factor'),
-                'journal_name': source_data.get('display_name'),
-                'source': 'openalex_source_api'
+                "h_index": source_data.get("h_index"),
+                "impact_factor": source_data.get("impact_factor"),
+                "journal_name": source_data.get("display_name"),
+                "source": "openalex_source_api",
             }
 
             # 过滤 None 值
@@ -309,11 +309,11 @@ class OpenAlexClient:
         # 例如："IEEE Trans. Neural Networks" -> "IEEE Trans. Neural Networks"
 
         # 尝试提取第一个单词序列（期刊名通常在开头）
-        match = re.match(r'^([A-Za-z\s\.\&]+)', journal_ref)
+        match = re.match(r"^([A-Za-z\s\.\&]+)", journal_ref)
         if match:
             name = match.group(1).strip()
             # 清理多余的空格和点号
-            name = re.sub(r'\s+', ' ', name)
+            name = re.sub(r"\s+", " ", name)
             return name
 
         return journal_ref
@@ -339,7 +339,7 @@ class OpenAlexClient:
                 - source: str (查询来源)
         """
         # 策略 1: 尝试 DOI 查询
-        doi = paper.get('doi')
+        doi = paper.get("doi")
         if doi:
             logger.debug(f"Querying by DOI: {doi}")
             metrics = self.query_by_doi(doi)
@@ -347,7 +347,7 @@ class OpenAlexClient:
                 return metrics
 
         # 策略 2: 尝试期刊名称查询
-        journal_ref = paper.get('journal_ref')
+        journal_ref = paper.get("journal_ref")
         if journal_ref:
             journal_name = self._clean_journal_name(journal_ref)
             if journal_name:
@@ -363,11 +363,11 @@ class OpenAlexClient:
     def _get_default_metrics(self) -> Dict:
         """返回默认指标（确保系统不会崩溃）"""
         return {
-            'cited_by_percentile': self.DEFAULT_PERCENTILE,
-            'h_index': self.DEFAULT_H_INDEX,
-            'impact_factor': self.DEFAULT_IMPACT_FACTOR,
-            'journal_name': 'Unknown',
-            'source': 'default'
+            "cited_by_percentile": self.DEFAULT_PERCENTILE,
+            "h_index": self.DEFAULT_H_INDEX,
+            "impact_factor": self.DEFAULT_IMPACT_FACTOR,
+            "journal_name": "Unknown",
+            "source": "default",
         }
 
     def preload_journal_metrics(self, papers: List[Dict]) -> Dict[str, Dict]:
@@ -384,7 +384,7 @@ class OpenAlexClient:
         start_time = time.time()
 
         for i, paper in enumerate(papers):
-            paper_id = paper.get('arxiv_id') or paper.get('chinaxiv_id') or str(i)
+            paper_id = paper.get("arxiv_id") or paper.get("chinaxiv_id") or str(i)
             metrics = self.get_metrics_for_paper(paper)
             results[paper_id] = metrics
 
@@ -392,10 +392,14 @@ class OpenAlexClient:
             if (i + 1) % 10 == 0:
                 elapsed = time.time() - start_time
                 rate = (i + 1) / elapsed
-                logger.info(f"Preloaded metrics for {i + 1}/{len(papers)} papers ({rate:.1f} papers/sec)")
+                logger.info(
+                    f"Preloaded metrics for {i + 1}/{len(papers)} papers ({rate:.1f} papers/sec)"
+                )
 
         elapsed = time.time() - start_time
-        logger.info(f"Preloaded metrics for {len(results)} papers in {elapsed:.1f}s ({len(results)/elapsed:.1f} papers/sec)")
+        logger.info(
+            f"Preloaded metrics for {len(results)} papers in {elapsed:.1f}s ({len(results)/elapsed:.1f} papers/sec)"
+        )
         return results
 
     def auto_preload_common_journals(self, silent: bool = False) -> bool:
@@ -419,13 +423,22 @@ class OpenAlexClient:
         # 常见计算机科学期刊（精简版，只加载最常用的）
         common_journals = [
             # 综合类顶刊
-            "Nature", "Science", "PNAS",
+            "Nature",
+            "Science",
+            "PNAS",
             # AI/ML 顶刊顶会
-            "NeurIPS", "ICML", "ICLR", "AAAI", "IJCAI",
+            "NeurIPS",
+            "ICML",
+            "ICLR",
+            "AAAI",
+            "IJCAI",
             # 计算机机视觉
-            "CVPR", "ICCV", "ECCV",
+            "CVPR",
+            "ICCV",
+            "ECCV",
             # NLP
-            "ACL", "EMNLP",
+            "ACL",
+            "EMNLP",
             # 期刊
             "Journal of Machine Learning Research",
             "Machine Learning",
@@ -433,11 +446,13 @@ class OpenAlexClient:
             "IEEE Transactions on Neural Networks and Learning Systems",
             "Artificial Intelligence",
             # 自动驾驶相关
-            "IEEE Transactions on Intelligent Transportation Systems"
+            "IEEE Transactions on Intelligent Transportation Systems",
         ]
 
         if not silent:
-            logger.info(f"Auto-preloading {len(common_journals)} common journals (first-time setup)...")
+            logger.info(
+                f"Auto-preloading {len(common_journals)} common journals (first-time setup)..."
+            )
 
         success_count = 0
         for journal in common_journals:
@@ -448,7 +463,9 @@ class OpenAlexClient:
             except Exception as e:
                 logger.debug(f"Failed to preload {journal}: {e}")
 
-        logger.info(f"Auto-preload complete: {success_count}/{len(common_journals)} journals cached")
+        logger.info(
+            f"Auto-preload complete: {success_count}/{len(common_journals)} journals cached"
+        )
         return True
 
     def close(self):

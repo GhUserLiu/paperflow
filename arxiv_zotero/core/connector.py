@@ -1,39 +1,50 @@
 import asyncio
-from typing import List, Dict, Tuple
 import logging
-from typing import Optional
 from pathlib import Path
+from typing import Dict, List, Optional, Tuple
 
-from ..utils.credentials import load_credentials
-from ..config.arxiv_config import ARXIV_TO_ZOTERO_MAPPING
-from ..config.metadata_config import MetadataMapper
-from ..config.bilingual_config import BilingualConfig
-from .search_params import ArxivSearchParams
-from ..utils.pdf_manager import PDFManager
 from ..clients.arxiv_client import ArxivClient
 from ..clients.chinaxiv_client import ChinaXivClient
-from ..clients.zotero_client import ZoteroClient
 from ..clients.openalex_client import OpenAlexClient
-from .paper_processor import PaperProcessor
-from ..utils.summarizer import PaperSummarizer
+from ..clients.zotero_client import ZoteroClient
+from ..config.arxiv_config import ARXIV_TO_ZOTERO_MAPPING
+from ..config.bilingual_config import BilingualConfig
+from ..config.metadata_config import MetadataMapper
+from ..utils.credentials import load_credentials
 from ..utils.journal_ranker import JournalRanker
+from ..utils.pdf_manager import PDFManager
+from ..utils.summarizer import PaperSummarizer
+from .paper_processor import PaperProcessor
+from .search_params import ArxivSearchParams
 
 # Setup logs directory
-LOG_DIR = Path(__file__).parent.parent.parent / 'logs'
+LOG_DIR = Path(__file__).parent.parent.parent / "logs"
 LOG_DIR.mkdir(exist_ok=True)
 
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
+    format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler(LOG_DIR / 'arxiv_zotero.log', mode='a', encoding='utf-8')
-    ]
+        logging.FileHandler(LOG_DIR / "arxiv_zotero.log", mode="a", encoding="utf-8"),
+    ],
 )
 logger = logging.getLogger(__name__)
 
+
 class ArxivZoteroCollector:
-    def __init__(self, zotero_library_id: str, zotero_api_key: str, collection_key: str = None, summarizer: Optional[PaperSummarizer] = None, config: Optional[dict] = None, enable_chinaxiv: bool = False, enable_openalex_ranking: bool = False, openalex_weights: Optional[Dict] = None, collection_only_dupcheck: bool = False):
+    def __init__(
+        self,
+        zotero_library_id: str,
+        zotero_api_key: str,
+        collection_key: str = None,
+        summarizer: Optional[PaperSummarizer] = None,
+        config: Optional[dict] = None,
+        enable_chinaxiv: bool = False,
+        enable_openalex_ranking: bool = False,
+        openalex_weights: Optional[Dict] = None,
+        collection_only_dupcheck: bool = False,
+    ):
         """
         Initialize the ArxivZoteroCollector
 
@@ -53,11 +64,7 @@ class ArxivZoteroCollector:
         self.metadata_mapper = MetadataMapper(ARXIV_TO_ZOTERO_MAPPING)
         self.pdf_manager = PDFManager()
         self.paper_processor = PaperProcessor(
-            self.zotero_client,
-            self.metadata_mapper,
-            self.pdf_manager,
-            summarizer,
-            config
+            self.zotero_client, self.metadata_mapper, self.pdf_manager, summarizer, config
         )
         self.arxiv_client = ArxivClient()
         self.chinaxiv_client = ChinaXivClient() if enable_chinaxiv else None
@@ -77,7 +84,7 @@ class ArxivZoteroCollector:
         # Set collection-only duplicate checking
         if collection_only_dupcheck:
             self.paper_processor.set_collection_only_dupcheck(True)
-        
+
     def search_arxiv(self, search_params: ArxivSearchParams) -> List[Dict]:
         """Search arXiv using provided search parameters"""
         return self.arxiv_client.search_arxiv(search_params)
@@ -85,7 +92,9 @@ class ArxivZoteroCollector:
     def search_chinaxiv(self, search_params: ArxivSearchParams) -> List[Dict]:
         """Search ChinaXiv using provided search parameters"""
         if not self.enable_chinaxiv:
-            logger.warning("ChinaXiv is not enabled. Use enable_chinaxiv=True when initializing the collector.")
+            logger.warning(
+                "ChinaXiv is not enabled. Use enable_chinaxiv=True when initializing the collector."
+            )
             return []
         return self.chinaxiv_client.search_chinaxiv(search_params)
 
@@ -158,7 +167,12 @@ class ArxivZoteroCollector:
             logger.error(f"Error in OpenAlex ranking: {str(e)}")
             return papers
 
-    async def run_collection_async(self, search_params: ArxivSearchParams, download_pdfs: bool = True, use_all_sources: bool = False) -> Tuple[int, int]:
+    async def run_collection_async(
+        self,
+        search_params: ArxivSearchParams,
+        download_pdfs: bool = True,
+        use_all_sources: bool = False,
+    ) -> Tuple[int, int]:
         """
         Run collection process asynchronously using search parameters
 
@@ -173,13 +187,13 @@ class ArxivZoteroCollector:
             else:
                 papers = self.search_arxiv(search_params)
             logger.info(f"Found {len(papers)} papers matching the criteria")
-            
+
             if not papers:
                 return 0, 0
-                
+
             successful = 0
             failed = 0
-            
+
             async def process_paper(paper):
                 nonlocal successful, failed
                 try:
@@ -190,11 +204,13 @@ class ArxivZoteroCollector:
                 except Exception as e:
                     failed += 1
                     logger.error(f"Error processing paper: {str(e)}")
-                
+
             tasks = [process_paper(paper) for paper in papers]
             await asyncio.gather(*tasks)
 
-            logger.info(f"Collection complete. Successfully processed {successful} papers. Failed: {failed}")
+            logger.info(
+                f"Collection complete. Successfully processed {successful} papers. Failed: {failed}"
+            )
 
             # 输出 API 统计信息
             api_stats = self.zotero_client.get_api_stats()
@@ -216,7 +232,7 @@ class ArxivZoteroCollector:
         category: str,
         start_date,
         config_path: Optional[str] = None,
-        download_pdfs: bool = True
+        download_pdfs: bool = True,
     ) -> Tuple[int, int]:
         """
         Run bilingual collection using config file with different keywords for each source
@@ -240,16 +256,17 @@ class ArxivZoteroCollector:
 
             # Search arXiv with English keywords
             # 使用英文关键词搜索 arXiv
-            if bilingual_config.is_source_enabled('arxiv'):
+            if bilingual_config.is_source_enabled("arxiv"):
                 logger.info(f"Searching arXiv for category '{category}' with English keywords...")
-                arxiv_keywords = bilingual_config.get_keywords_for_source('arxiv', category)
-                arxiv_max_results = bilingual_config.get_max_results_for_source('arxiv')
+                arxiv_keywords = bilingual_config.get_keywords_for_source("arxiv", category)
+                arxiv_max_results = bilingual_config.get_max_results_for_source("arxiv")
 
                 for keyword in arxiv_keywords:
                     search_params = ArxivSearchParams(
                         keywords=[keyword],
                         start_date=start_date,
-                        max_results=arxiv_max_results // len(arxiv_keywords)  # Divide results among keywords
+                        max_results=arxiv_max_results
+                        // len(arxiv_keywords),  # Divide results among keywords
                     )
                     arxiv_papers = self.search_arxiv(search_params)
                     all_papers.extend(arxiv_papers)
@@ -262,17 +279,19 @@ class ArxivZoteroCollector:
             # Search ChinaXiv with Chinese keywords
             # 使用中文关键词搜索 ChinaXiv
             chinaxiv_papers_count = 0
-            if bilingual_config.is_source_enabled('chinaxiv') and self.enable_chinaxiv:
-                logger.info(f"Searching ChinaXiv for category '{category}' with Chinese keywords...")
-                chinaxiv_keywords = bilingual_config.get_keywords_for_source('chinaxiv', category)
-                chinaxiv_max_results = bilingual_config.get_max_results_for_source('chinaxiv')
+            if bilingual_config.is_source_enabled("chinaxiv") and self.enable_chinaxiv:
+                logger.info(
+                    f"Searching ChinaXiv for category '{category}' with Chinese keywords..."
+                )
+                chinaxiv_keywords = bilingual_config.get_keywords_for_source("chinaxiv", category)
+                chinaxiv_max_results = bilingual_config.get_max_results_for_source("chinaxiv")
 
                 chinaxiv_results = []
                 for keyword in chinaxiv_keywords:
                     search_params = ArxivSearchParams(
                         keywords=[keyword],
                         start_date=start_date,
-                        max_results=chinaxiv_max_results // len(chinaxiv_keywords)
+                        max_results=chinaxiv_max_results // len(chinaxiv_keywords),
                     )
                     papers = self.search_chinaxiv(search_params)
                     chinaxiv_results.extend(papers)
@@ -282,7 +301,9 @@ class ArxivZoteroCollector:
                 chinaxiv_results = chinaxiv_results[:chinaxiv_max_results]
                 all_papers.extend(chinaxiv_results)
                 chinaxiv_papers_count = len(chinaxiv_results)
-                logger.info(f"Total from ChinaXiv (limited to {chinaxiv_max_results}): {chinaxiv_papers_count}")
+                logger.info(
+                    f"Total from ChinaXiv (limited to {chinaxiv_max_results}): {chinaxiv_papers_count}"
+                )
 
             logger.info(f"Total papers from all sources: {len(all_papers)}")
 
@@ -307,7 +328,9 @@ class ArxivZoteroCollector:
             tasks = [process_paper(paper) for paper in all_papers]
             await asyncio.gather(*tasks)
 
-            logger.info(f"Bilingual collection complete. Successful: {successful}, Failed: {failed}")
+            logger.info(
+                f"Bilingual collection complete. Successful: {successful}, Failed: {failed}"
+            )
 
             # Output API statistics
             api_stats = self.zotero_client.get_api_stats()
@@ -335,35 +358,34 @@ class ArxivZoteroCollector:
         if self.openalex_client:
             self.openalex_client.close()
 
+
 async def main():
     collector = None
     try:
         credentials = load_credentials()
         collector = ArxivZoteroCollector(
-            zotero_library_id=credentials['library_id'],
-            zotero_api_key=credentials['api_key'],
-            collection_key=credentials['collection_key']
+            zotero_library_id=credentials["library_id"],
+            zotero_api_key=credentials["api_key"],
+            collection_key=credentials["collection_key"],
         )
-        
+
         # Example usage with ArxivSearchParams
         search_params = ArxivSearchParams(
-            keywords=["multi-agent systems"],
-            max_results=10,
-            categories=["cs.AI"]
+            keywords=["multi-agent systems"], max_results=10, categories=["cs.AI"]
         )
-        
+
         successful, failed = await collector.run_collection_async(
-            search_params=search_params,
-            download_pdfs=True
+            search_params=search_params, download_pdfs=True
         )
-        
+
         logger.info(f"Script completed. Successfully processed: {successful}, Failed: {failed}")
-        
+
     except Exception as e:
         logger.error(f"Script failed: {str(e)}")
     finally:
         if collector:
             await collector.close()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

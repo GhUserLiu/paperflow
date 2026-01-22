@@ -14,15 +14,15 @@ Usage:
 
 import asyncio
 import logging
-import pytest
 from typing import Dict
 
-from arxiv_zotero import ArxivZoteroCollector, ArxivSearchParams
+import pytest
+
+from arxiv_zotero import ArxivSearchParams, ArxivZoteroCollector
 
 # Configure logging to see the duplicate detection messages
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
 logger = logging.getLogger(__name__)
@@ -47,14 +47,14 @@ async def test_duplicate_detection():
     search_params = ArxivSearchParams(
         keywords=['"autonomous driving" AND perception'],
         max_results=5,
-        categories=["cs.CV", "cs.RO"]
+        categories=["cs.CV", "cs.RO"],
     )
 
     # Create collector
     collector = ArxivZoteroCollector(
         zotero_library_id=zotero_library_id,
         zotero_api_key=zotero_api_key,
-        collection_key=collection_key
+        collection_key=collection_key,
     )
 
     print("=" * 70)
@@ -67,8 +67,7 @@ async def test_duplicate_detection():
     print("-" * 70)
 
     successful_1, failed_1 = await collector.run_collection_async(
-        search_params=search_params,
-        download_pdfs=False  # Skip PDFs for faster testing
+        search_params=search_params, download_pdfs=False  # Skip PDFs for faster testing
     )
 
     print()
@@ -82,8 +81,7 @@ async def test_duplicate_detection():
     print("-" * 70)
 
     successful_2, failed_2 = await collector.run_collection_async(
-        search_params=search_params,
-        download_pdfs=False
+        search_params=search_params, download_pdfs=False
     )
 
     print()

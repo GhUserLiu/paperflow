@@ -2,13 +2,15 @@
 性能监控模块单元测试 | Performance Monitor Unit Tests
 """
 
-import pytest
 import time
+
+import pytest
+
 from arxiv_zotero.utils.performance import (
     PerformanceMonitor,
     get_global_monitor,
     monitor_performance,
-    timeit
+    timeit,
 )
 
 
@@ -34,11 +36,11 @@ class TestPerformanceMonitor:
         assert result == "result"
 
         # 验证统计信息被记录
-        stats = monitor.get_stats('test_function')
-        assert stats['call_count'] == 1
-        assert stats['total_time'] > 0
-        assert stats['success_count'] == 1
-        assert stats['error_count'] == 0
+        stats = monitor.get_stats("test_function")
+        assert stats["call_count"] == 1
+        assert stats["total_time"] > 0
+        assert stats["success_count"] == 1
+        assert stats["error_count"] == 0
 
     def test_track_decorator_with_name(self):
         """测试装饰器（自定义名称）"""
@@ -52,9 +54,9 @@ class TestPerformanceMonitor:
         test_function()
 
         # 验证使用自定义名称
-        stats = monitor.get_stats('CustomFunction')
-        assert stats['call_count'] == 1
-        assert stats['success_count'] == 1
+        stats = monitor.get_stats("CustomFunction")
+        assert stats["call_count"] == 1
+        assert stats["success_count"] == 1
 
     def test_track_multiple_calls(self):
         """测试多次调用"""
@@ -69,10 +71,10 @@ class TestPerformanceMonitor:
         for _ in range(3):
             test_function()
 
-        stats = monitor.get_stats('test_function')
-        assert stats['call_count'] == 3
-        assert stats['success_count'] == 3
-        assert stats['total_time'] > 0
+        stats = monitor.get_stats("test_function")
+        assert stats["call_count"] == 3
+        assert stats["success_count"] == 3
+        assert stats["total_time"] > 0
 
     def test_track_with_error(self):
         """测试错误处理"""
@@ -86,11 +88,11 @@ class TestPerformanceMonitor:
         with pytest.raises(ValueError):
             failing_function()
 
-        stats = monitor.get_stats('failing_function')
-        assert stats['call_count'] == 1
-        assert stats['error_count'] == 1
-        assert stats['success_count'] == 0
-        assert stats['last_error'] == "Test error"
+        stats = monitor.get_stats("failing_function")
+        assert stats["call_count"] == 1
+        assert stats["error_count"] == 1
+        assert stats["success_count"] == 0
+        assert stats["last_error"] == "Test error"
 
     def test_track_mixed_success_and_error(self):
         """测试混合成功和错误"""
@@ -111,16 +113,16 @@ class TestPerformanceMonitor:
         # 再次成功
         conditional_function(should_fail=False)
 
-        stats = monitor.get_stats('conditional_function')
-        assert stats['call_count'] == 3
-        assert stats['success_count'] == 2
-        assert stats['error_count'] == 1
-        assert abs(stats['success_rate'] - (2 / 3 * 100)) < 0.1
+        stats = monitor.get_stats("conditional_function")
+        assert stats["call_count"] == 3
+        assert stats["success_count"] == 2
+        assert stats["error_count"] == 1
+        assert abs(stats["success_rate"] - (2 / 3 * 100)) < 0.1
 
     def test_get_stats_nonexistent(self):
         """测试获取不存在的函数统计"""
         monitor = PerformanceMonitor()
-        stats = monitor.get_stats('nonexistent_function')
+        stats = monitor.get_stats("nonexistent_function")
         assert stats == {}
 
     def test_get_all_stats_empty(self):
@@ -146,8 +148,8 @@ class TestPerformanceMonitor:
 
         all_stats = monitor.get_all_stats()
         assert len(all_stats) == 2
-        assert 'Func1' in all_stats
-        assert 'Func2' in all_stats
+        assert "Func1" in all_stats
+        assert "Func2" in all_stats
 
     def test_min_max_time(self):
         """测试最小/最大时间记录"""
@@ -165,11 +167,11 @@ class TestPerformanceMonitor:
         # 第三次调用（中等）
         variable_time_function(0.02)
 
-        stats = monitor.get_stats('variable_function')
-        assert stats['min_time'] > 0
-        assert stats['max_time'] > stats['min_time']
-        assert stats['max_time'] > 0.04  # 至少0.05秒
-        assert stats['min_time'] < 0.02  # 至多0.01秒
+        stats = monitor.get_stats("variable_function")
+        assert stats["min_time"] > 0
+        assert stats["max_time"] > stats["min_time"]
+        assert stats["max_time"] > 0.04  # 至少0.05秒
+        assert stats["min_time"] < 0.02  # 至多0.01秒
 
     def test_avg_time_calculation(self):
         """测试平均时间计算"""
@@ -184,9 +186,9 @@ class TestPerformanceMonitor:
         for _ in range(3):
             test_function()
 
-        stats = monitor.get_stats('avg_test_function')
-        assert stats['avg_time'] > 0
-        assert abs(stats['avg_time'] - (stats['total_time'] / 3)) < 0.001
+        stats = monitor.get_stats("avg_test_function")
+        assert stats["avg_time"] > 0
+        assert abs(stats["avg_time"] - (stats["total_time"] / 3)) < 0.001
 
     def test_generate_report_empty(self):
         """测试生成报告（空数据）"""
@@ -228,9 +230,9 @@ class TestPerformanceMonitor:
         slow_function()
 
         # 按总时间排序（SlowFunc 应该在前）
-        report = monitor.generate_report(sort_by='total_time')
-        slow_pos = report.find('SlowFunc')
-        fast_pos = report.find('FastFunc')
+        report = monitor.generate_report(sort_by="total_time")
+        slow_pos = report.find("SlowFunc")
+        fast_pos = report.find("FastFunc")
         assert slow_pos < fast_pos  # SlowFunc 应该出现在 FastFunc 之前
 
     def test_reset(self):
@@ -259,10 +261,10 @@ class TestPerformanceMonitor:
         test_function()
 
         exported = monitor.export_stats()
-        assert 'ExportFunc' in exported
-        assert exported['ExportFunc']['call_count'] == 1
-        assert exported['ExportFunc']['total_time'] > 0
-        assert 'last_call' in exported['ExportFunc']
+        assert "ExportFunc" in exported
+        assert exported["ExportFunc"]["call_count"] == 1
+        assert exported["ExportFunc"]["total_time"] > 0
+        assert "last_call" in exported["ExportFunc"]
 
     def test_global_monitor_singleton(self):
         """测试全局监控器单例"""
@@ -272,6 +274,7 @@ class TestPerformanceMonitor:
 
     def test_monitor_performance_decorator(self):
         """测试 monitor_performance 装饰器"""
+
         @monitor_performance(name="global_test_function")
         def test_function():
             time.sleep(0.01)
@@ -286,6 +289,7 @@ class TestPerformanceMonitor:
 
     def test_timeit_decorator(self):
         """测试 timeit 装饰器"""
+
         @timeit
         def test_function():
             time.sleep(0.01)
@@ -305,9 +309,9 @@ class TestPerformanceMonitor:
 
         test_function()
 
-        stats = monitor.get_stats('timestamp_test_function')
-        assert stats['last_call'] is not None
-        assert stats['last_call'].year >= 2024  # 合理的年份
+        stats = monitor.get_stats("timestamp_test_function")
+        assert stats["last_call"] is not None
+        assert stats["last_call"].year >= 2024  # 合理的年份
 
     def test_multiple_functions_independence(self):
         """测试多个函数的统计独立性"""
@@ -327,15 +331,15 @@ class TestPerformanceMonitor:
         func_a()
         func_b()
 
-        stats_a = monitor.get_stats('FuncA')
-        stats_b = monitor.get_stats('FuncB')
+        stats_a = monitor.get_stats("FuncA")
+        stats_b = monitor.get_stats("FuncB")
 
-        assert stats_a['call_count'] == 2
-        assert stats_b['call_count'] == 1
+        assert stats_a["call_count"] == 2
+        assert stats_b["call_count"] == 1
         # 验证两个函数的统计数据是独立的
         assert stats_a is not stats_b
-        assert stats_a['total_time'] > 0
-        assert stats_b['total_time'] > 0
+        assert stats_a["total_time"] > 0
+        assert stats_b["total_time"] > 0
 
     def test_success_rate_calculation(self):
         """测试成功率计算"""
@@ -357,11 +361,11 @@ class TestPerformanceMonitor:
             except:
                 pass
 
-        stats = monitor.get_stats('success_rate_function')
-        assert stats['call_count'] == 7
-        assert stats['success_count'] == 5
-        assert stats['error_count'] == 2
-        assert abs(stats['success_rate'] - (5 / 7 * 100)) < 0.1
+        stats = monitor.get_stats("success_rate_function")
+        assert stats["call_count"] == 7
+        assert stats["success_count"] == 5
+        assert stats["error_count"] == 2
+        assert abs(stats["success_rate"] - (5 / 7 * 100)) < 0.1
 
     def test_track_preserves_function_metadata(self):
         """测试装饰器保留函数元数据"""

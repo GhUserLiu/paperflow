@@ -8,16 +8,18 @@ import os
 import sys
 from datetime import datetime, timedelta
 from typing import Dict
-from arxiv_zotero import ArxivZoteroCollector, ArxivSearchParams
+
+from arxiv_zotero import ArxivSearchParams, ArxivZoteroCollector
 from arxiv_zotero.utils import ConfigLoader, get_global_monitor
 from arxiv_zotero.utils.errors import ConfigError
 
 # Fix Windows encoding issue
 # 修复Windows编码问题
-if sys.platform == 'win32':
+if sys.platform == "win32":
     import io
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
 
 
 def load_config():
@@ -34,22 +36,23 @@ def load_config():
         print("   3. 重新运行程序\n")
         sys.exit(1)
 
+
 # Query configuration for 5 research categories
 # 五类研究方向的查询配置
 QUERY_MAP: Dict[str, str] = {
     "general": (
         '("intelligent connected vehicles" OR "autonomous driving") '
-        "AND (communication OR perception OR \"sensor fusion\" OR planning)"
+        'AND (communication OR perception OR "sensor fusion" OR planning)'
     ),
     "communication": (
         '("V2X" OR "vehicle-to-everything" OR VANET) '
-        "AND (security OR \"semantic communication\" OR "
-        "latency OR \"beamforming\")"
+        'AND (security OR "semantic communication" OR '
+        'latency OR "beamforming")'
     ),
     "perception": (
-        "(camera OR lidar OR radar OR \"sensor fusion\") "
-        "AND (\"autonomous driving\" OR \"object detection\" OR "
-        "\"trajectory prediction\")"
+        '(camera OR lidar OR radar OR "sensor fusion") '
+        'AND ("autonomous driving" OR "object detection" OR '
+        '"trajectory prediction")'
     ),
     "control": (
         '("path planning" OR "motion planning" OR "model predictive "'
@@ -57,8 +60,8 @@ QUERY_MAP: Dict[str, str] = {
         "AND vehicle"
     ),
     "security": (
-        "(safety OR security OR privacy OR \"adversarial attack\") "
-        "AND (\"autonomous vehicle\" OR \"connected vehicle\")"
+        '(safety OR security OR privacy OR "adversarial attack") '
+        'AND ("autonomous vehicle" OR "connected vehicle")'
     ),
 }
 
@@ -91,8 +94,7 @@ BILINGUAL_CONFIG_PATH = os.getenv("BILINGUAL_CONFIG_PATH", "config/bilingual_key
 
 
 async def collect_papers_for_category_bilingual(
-    category: str,
-    collection_key: str
+    category: str, collection_key: str
 ) -> tuple[int, int]:
     """
     Collect papers for a specific category using bilingual keywords configuration
@@ -120,7 +122,7 @@ async def collect_papers_for_category_bilingual(
             zotero_library_id=ZOTERO_LIBRARY_ID,
             zotero_api_key=ZOTERO_API_KEY,
             collection_key=collection_key,
-            enable_chinaxiv=True  # Always enable for bilingual mode
+            enable_chinaxiv=True,  # Always enable for bilingual mode
         )
 
         # Calculate time filter (past N hours)
@@ -132,7 +134,7 @@ async def collect_papers_for_category_bilingual(
             category=category,
             start_date=start_date,
             config_path=BILINGUAL_CONFIG_PATH,
-            download_pdfs=True
+            download_pdfs=True,
         )
 
         print(f"\n[OK] {category} bilingual collection completed:")
@@ -144,14 +146,13 @@ async def collect_papers_for_category_bilingual(
     except Exception as e:
         print(f"\n[ERROR] {category} bilingual collection failed: {e}")
         import traceback
+
         traceback.print_exc()
         return 0, 0
 
 
 async def collect_papers_for_category(
-    category: str,
-    query: str,
-    collection_key: str
+    category: str, query: str, collection_key: str
 ) -> tuple[int, int]:
     """
     Collect papers for a specific category
@@ -180,7 +181,7 @@ async def collect_papers_for_category(
             zotero_library_id=ZOTERO_LIBRARY_ID,
             zotero_api_key=ZOTERO_API_KEY,
             collection_key=collection_key,
-            enable_chinaxiv=ENABLE_CHINAXIV
+            enable_chinaxiv=ENABLE_CHINAXIV,
         )
 
         # Calculate time filter (past N hours)
@@ -190,9 +191,7 @@ async def collect_papers_for_category(
         # Configure search parameters with time filter
         # 配置搜索参数(包含时间过滤)
         search_params = ArxivSearchParams(
-            keywords=[query],
-            start_date=start_date,
-            max_results=MAX_RESULTS_PER_CATEGORY
+            keywords=[query], start_date=start_date, max_results=MAX_RESULTS_PER_CATEGORY
         )
 
         print(f"起始时间: {start_date.strftime('%Y-%m-%d %H:%M:%S')}")
@@ -202,7 +201,7 @@ async def collect_papers_for_category(
         successful, failed = await collector.run_collection_async(
             search_params=search_params,
             download_pdfs=True,
-            use_all_sources=True  # 启用多来源搜索(arXiv + ChinaXiv)
+            use_all_sources=True,  # 启用多来源搜索(arXiv + ChinaXiv)
         )
 
         print(f"\n[OK] {category} collection completed:")
@@ -221,10 +220,10 @@ async def main():
     Main function to collect papers for all categories
     主函数，采集所有类别的论文
     """
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("ArXiv论文自动采集系统")
     print("Auto Paper Collection System")
-    print("="*60)
+    print("=" * 60)
     print(f"开始时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"采集类别数: {len(QUERY_MAP)}")
 
@@ -262,22 +261,19 @@ async def main():
             # Use bilingual config with different keywords for each source
             # 使用双语配置，为不同来源使用不同的关键词
             successful, failed = await collect_papers_for_category_bilingual(
-                category=category,
-                collection_key=collection_key
+                category=category, collection_key=collection_key
             )
         else:
             # Use standard mode (single query for all sources)
             # 使用标准模式（所有来源使用单一查询）
             successful, failed = await collect_papers_for_category(
-                category=category,
-                query=query,
-                collection_key=collection_key
+                category=category, query=query, collection_key=collection_key
             )
 
         results[category] = {
             "successful": successful,
             "failed": failed,
-            "collection_key": collection_key
+            "collection_key": collection_key,
         }
 
         total_successful += successful
@@ -291,9 +287,9 @@ async def main():
 
     # Print summary
     # 打印总结
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("采集完成！Collection Summary")
-    print("="*60)
+    print("=" * 60)
     print(f"结束时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"\n总计:")
     print(f"  成功采集: {total_successful} 篇")
@@ -306,14 +302,14 @@ async def main():
         print(f"    成功: {stats['successful']} 篇")
         print(f"    失败: {stats['failed']} 篇")
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
 
     # 生成性能报告（如果性能监控已启用）
     # Generate performance report (if monitoring is enabled)
     monitor = get_global_monitor()
     if monitor.stats:
         print("\n")
-        monitor.print_report(sort_by='total_time')
+        monitor.print_report(sort_by="total_time")
 
 
 if __name__ == "__main__":

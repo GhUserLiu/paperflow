@@ -49,6 +49,31 @@ python scripts/auto_collect.py
 
 ---
 
+### 3. git-proxy-push.sh / git-proxy-push.bat
+**用途**: 智能推送（失败时自动使用代理）| **Purpose**: Smart push with auto-proxy fallback
+
+**功能 | Features**:
+- ✅ 首先尝试直接推送 | Try direct push first
+- ✅ 失败时自动使用代理重试 | Auto-retry with proxy on failure
+- ✅ 代理端口: 7897（可修改）| Proxy port: 7897 (configurable)
+
+**使用方法 | Usage**:
+
+Linux/Mac:
+```bash
+bash scripts/git-proxy-push.sh
+```
+
+Windows:
+```batch
+scripts\git-proxy-push.bat
+```
+
+**配置代理端口 | Configure Proxy Port**:
+编辑脚本中的 `PROXY_PORT` 变量（默认 7897）
+
+---
+
 ### 3. search_papers.py
 **用途**: 搜索 ArXiv 论文 | **Purpose**: Search ArXiv papers
 

@@ -2,9 +2,10 @@
 ArxivClient 单元测试 | ArxivClient Unit Tests
 """
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime, timedelta
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 import pytz
 
 from arxiv_zotero.clients.arxiv_client import ArxivClient
@@ -24,7 +25,7 @@ class TestArxivClient:
         assert client.client.delay_seconds == 3
         assert client.client.num_retries == 5
 
-    @patch('arxiv_zotero.clients.arxiv_client.arxiv.Client')
+    @patch("arxiv_zotero.clients.arxiv_client.arxiv.Client")
     def test_search_arxiv_success(self, mock_client_class):
         """测试成功搜索"""
         # 模拟 arxiv.Result 对象
@@ -176,6 +177,7 @@ class TestArxivClient:
 
         # 直接调用（使用 asyncio.run）
         import asyncio
+
         metadata = asyncio.run(client._prepare_arxiv_metadata(mock_result))
 
         assert metadata is not None
@@ -198,12 +200,13 @@ class TestArxivClient:
 
         # 直接调用
         import asyncio
+
         metadata = asyncio.run(client._prepare_arxiv_metadata(mock_result))
 
         # 应该返回 None 而不是抛出异常
         assert metadata is None
 
-    @patch('arxiv_zotero.clients.arxiv_client.arxiv.Client')
+    @patch("arxiv_zotero.clients.arxiv_client.arxiv.Client")
     def test_search_arxiv_empty_results(self, mock_client_class):
         """测试空结果"""
         # 模拟空结果
@@ -220,7 +223,7 @@ class TestArxivClient:
 
         assert len(results) == 0
 
-    @patch('arxiv_zotero.clients.arxiv_client.arxiv.Client')
+    @patch("arxiv_zotero.clients.arxiv_client.arxiv.Client")
     def test_search_arxiv_with_date_filter(self, mock_client_class):
         """测试带日期过滤的搜索"""
         mock_result = Mock()
@@ -245,11 +248,7 @@ class TestArxivClient:
 
         # 设置日期范围（过去7天）
         start_date = datetime.now(pytz.UTC) - timedelta(days=7)
-        params = ArxivSearchParams(
-            keywords=["recent"],
-            start_date=start_date,
-            max_results=10
-        )
+        params = ArxivSearchParams(keywords=["recent"], start_date=start_date, max_results=10)
 
         results = client.search_arxiv(params)
 

@@ -1,10 +1,11 @@
 from datetime import datetime
 from typing import List, Optional
 
+
 class ArxivSearchParams:
     """
     Data class for organizing arXiv search parameters
-    
+
     Attributes:
         keywords (List[str]): List of general search keywords
         title_search (str): Specific term to search for in titles
@@ -15,7 +16,7 @@ class ArxivSearchParams:
         content_type (str): Type of content to filter for ("journal", "conference", "preprint")
         max_results (int): Maximum number of results to return
     """
-    
+
     def __init__(
         self,
         keywords: List[str] = None,
@@ -25,11 +26,11 @@ class ArxivSearchParams:
         end_date: datetime = None,
         author: str = None,
         content_type: str = None,
-        max_results: int = 50
+        max_results: int = 50,
     ):
         """
         Initialize search parameters
-        
+
         Args:
             keywords: List of general search keywords
             title_search: Specific term to search for in titles
@@ -52,30 +53,30 @@ class ArxivSearchParams:
     def build_query(self) -> str:
         """
         Build the arXiv query string based on search parameters
-        
+
         Returns:
             str: Formatted arXiv API query string
         """
         query_parts = []
-        
+
         # Add general keywords
         if self.keywords:
-            query_parts.append('(' + ' OR '.join(self.keywords) + ')')
-            
+            query_parts.append("(" + " OR ".join(self.keywords) + ")")
+
         # Add title search
         if self.title_search:
             query_parts.append(f'ti:"{self.title_search}"')
-            
+
         # Add author search
         if self.author:
             query_parts.append(f'au:"{self.author}"')
-            
+
         # Add category filters
         if self.categories:
-            cat_query = ' OR '.join(f'cat:{cat}' for cat in self.categories)
-            query_parts.append(f'({cat_query})')
-            
-        return ' AND '.join(query_parts) if query_parts else '*:*'
+            cat_query = " OR ".join(f"cat:{cat}" for cat in self.categories)
+            query_parts.append(f"({cat_query})")
+
+        return " AND ".join(query_parts) if query_parts else "*:*"
 
     def __str__(self) -> str:
         """String representation of search parameters"""
@@ -95,5 +96,5 @@ class ArxivSearchParams:
         if self.end_date:
             params.append(f"end_date={self.end_date.strftime('%Y-%m-%d')}")
         params.append(f"max_results={self.max_results}")
-        
+
         return f"ArxivSearchParams({', '.join(params)})"

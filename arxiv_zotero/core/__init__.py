@@ -1,3 +1,3 @@
 from .connector import ArxivZoteroCollector
 
-__all__ = ['ArxivZoteroCollector']
+__all__ = ["ArxivZoteroCollector"]

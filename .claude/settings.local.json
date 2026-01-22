@@ -37,7 +37,12 @@
       "Bash(grep:*)",
       "Bash(chmod:*)",
       "Bash(pre-commit install:*)",
-      "Bash(pre-commit run:*)"
+      "Bash(pre-commit run:*)",
+      "Bash(gh run:*)",
+      "Bash(git remote get-url:*)",
+      "Bash(for port in 7890 7891 10809 10808 1087)",
+      "Bash(do echo:*)",
+      "Bash(break)"
     ]
   }
 }

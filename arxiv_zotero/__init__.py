@@ -2,7 +2,7 @@
 
 from .core.connector import ArxivZoteroCollector
 from .core.search_params import ArxivSearchParams
-from .utils.credentials import load_credentials, CredentialsError
+from .utils.credentials import CredentialsError, load_credentials
 from .utils.pdf_manager import PDFManager
 from .utils.summarizer import PaperSummarizer
 
