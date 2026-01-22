@@ -462,7 +462,7 @@ search_params = ArxivSearchParams(
 **解决方案**:
 ```bash
 chcp 65001  # 切换到 UTF-8 编码
-python auto_collect.py
+python scripts/auto_collect.py
 ```
 
 脚本已内置 Windows 编码修复，通常不需要手动操作。
@@ -612,12 +612,16 @@ arxiv-zotero-connector/
 │   ├── __init__.py
 │   ├── test_imports.py
 │   └── test_duplicate_detection.py  # 重复检测测试
-├── auto_collect.py            # 主采集脚本
-├── .env                       # 环境变量配置
-├── .env.example               # 环境变量示例
-├── requirements.txt            # 依赖列表
-├── setup.py                   # 安装配置
-└── README.md                  # 项目说明（本文件）
+├── scripts/                  # 脚本文件
+│   ├── auto_collect.py       # 定时采集脚本（5个研究方向）
+│   └── search_papers.py      # 灵活搜索脚本（自定义关键词）
+├── logs/                     # 日志文件
+│   └── collection_log.md     # GitHub Actions 采集日志
+├── .env                      # 环境变量配置
+├── .env.example              # 环境变量示例
+├── requirements.txt          # 依赖列表
+├── setup.py                  # 安装配置
+└── README.md                 # 项目说明（本文件）
 ```
 
 ## 📚 相关资源
