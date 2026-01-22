@@ -36,7 +36,7 @@ from arxiv_zotero import ArxivZoteroCollector, ArxivSearchParams
 # 配置
 ZOTERO_LIBRARY_ID = os.getenv("ZOTERO_LIBRARY_ID", "19092277")
 ZOTERO_API_KEY = os.getenv("ZOTERO_API_KEY", "HoLB2EnPj4PpHo1gQ65qy2aw")
-TEMP_COLLECTION_KEY = "AQNIN4ZZ"  # temp 集合
+TEMP_COLLECTION_KEY = os.getenv("TEMP_COLLECTION_KEY", "AQNIN4ZZ")  # temp 集合（可通过环境变量配置）
 
 
 async def search_papers(
