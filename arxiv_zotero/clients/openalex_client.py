@@ -358,11 +358,7 @@ class OpenAlexClient:
 
         # 策略 3: 返回默认空指标
         logger.debug(
-            f"No metrics found for paper: {
-                paper.get(
-                    'title',
-                    'Unknown')[
-                    :50]}"
+            f"No metrics found for paper: {paper.get('title', 'Unknown')[:50]}"
         )
         return self._get_default_metrics()
 
@@ -424,8 +420,7 @@ class OpenAlexClient:
             if size_mb > 0.1:
                 # 缓存已存在且有内容，跳过预热
                 logger.info(
-                    f"Cache already exists ({
-                        size_mb:.2f} MB), skipping preload"
+                    f"Cache already exists ({size_mb:.2f} MB), skipping preload"
                 )
                 return False
 
