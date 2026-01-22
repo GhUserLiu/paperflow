@@ -175,8 +175,7 @@ class ChinaXivClient:
 
             except Exception as api_error:
                 logger.warning(
-                    f"ChinaXiv API search failed: {
-                        str(api_error)}, trying web scraping..."
+                    f"ChinaXiv API search failed: {str(api_error)}, trying web scraping..."
                 )
                 papers = self._fallback_web_search(keywords, search_params)
 
