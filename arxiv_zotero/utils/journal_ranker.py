@@ -20,10 +20,7 @@ class JournalRanker:
     """
 
     # 默认权重配置
-    DEFAULT_WEIGHTS = {
-        "cited_by_percentile": 0.50,
-        "h_index": 0.30,
-        "impact_factor": 0.20}
+    DEFAULT_WEIGHTS = {"cited_by_percentile": 0.50, "h_index": 0.30, "impact_factor": 0.20}
 
     # 默认降级分数（无指标时的基准分）
     DEFAULT_SCORES = {
@@ -82,8 +79,7 @@ class JournalRanker:
         # 限制在 [0, 1] 范围内
         return max(0.0, min(1.0, normalized))
 
-    def _calculate_metric_score(self, metrics: Dict,
-                                metric_name: str) -> float:
+    def _calculate_metric_score(self, metrics: Dict, metric_name: str) -> float:
         """
         计算单个指标的得分
 
@@ -124,20 +120,16 @@ class JournalRanker:
 
         # 计算各指标得分
         for metric_name in ["cited_by_percentile", "h_index", "impact_factor"]:
-            scores[metric_name] = self._calculate_metric_score(
-                metrics, metric_name)
+            scores[metric_name] = self._calculate_metric_score(metrics, metric_name)
 
         # 加权求和
-        composite_score = sum(scores[name] *
-                              self.weights[name] for name in scores)
+        composite_score = sum(scores[name] * self.weights[name] for name in scores)
 
-        logger.debug(
-            f"Metric scores: {scores} -> Composite: {composite_score:.2f}")
+        logger.debug(f"Metric scores: {scores} -> Composite: {composite_score:.2f}")
 
         return composite_score
 
-    def rank_papers(self, papers: List[Dict],
-                    metrics_map: Dict[str, Dict]) -> List[Dict]:
+    def rank_papers(self, papers: List[Dict], metrics_map: Dict[str, Dict]) -> List[Dict]:
         """
         对论文列表排序
 
@@ -151,8 +143,7 @@ class JournalRanker:
         # 为每篇论文计算综合评分
         for paper in papers:
             paper_id = (
-                paper.get("arxiv_id") or paper.get(
-                    "chinaxiv_id") or hash(paper.get("title", ""))
+                paper.get("arxiv_id") or paper.get("chinaxiv_id") or hash(paper.get("title", ""))
             )
 
             metrics = metrics_map.get(paper_id, {})
@@ -163,9 +154,7 @@ class JournalRanker:
             paper["openalex_metrics"] = metrics
 
         # 按评分降序排序
-        sorted_papers = sorted(
-            papers, key=lambda p: p.get(
-                "openalex_score", 0), reverse=True)
+        sorted_papers = sorted(papers, key=lambda p: p.get("openalex_score", 0), reverse=True)
 
         logger.info(f"Ranked {len(sorted_papers)} papers by OpenAlex score")
 

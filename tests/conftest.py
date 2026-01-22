@@ -45,8 +45,7 @@ def clear_env_before_tests(monkeypatch):
 def mock_env_vars(monkeypatch):
     """模拟环境变量"""
     # 清除所有可能的环境变量
-    for key in ["ZOTERO_LIBRARY_ID", "ZOTERO_API_KEY",
-                "TEMP_COLLECTION_KEY", "ENABLE_CHINAXIV"]:
+    for key in ["ZOTERO_LIBRARY_ID", "ZOTERO_API_KEY", "TEMP_COLLECTION_KEY", "ENABLE_CHINAXIV"]:
         monkeypatch.delenv(key, raising=False)
 
     # 设置测试环境变量

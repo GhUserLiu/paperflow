@@ -38,23 +38,19 @@ class ChinaXivClient:
             match = re.match(r"(\d{6})\.(\d+)", paper_id)
             if match:
                 year_month, number = match.groups()
-                return {
-                    "year": year_month[:4], "month": year_month[4:6], "number": number}
+                return {"year": year_month[:4], "month": year_month[4:6], "number": number}
         except Exception as e:
             logger.warning(f"Could not parse paper ID {paper_id}: {str(e)}")
         return {}
 
-    async def _prepare_chinaxiv_metadata(
-            self, paper_data: Dict) -> Optional[Dict]:
+    async def _prepare_chinaxiv_metadata(self, paper_data: Dict) -> Optional[Dict]:
         """
         Prepare metadata from ChinaXiv paper data
         从 ChinaXiv 论文数据准备元数据
         """
         try:
             # Extract ChinaXiv ID from URL or data
-            chinaxiv_id = paper_data.get(
-                "id", "") or paper_data.get(
-                "chinaxiv_id", "")
+            chinaxiv_id = paper_data.get("id", "") or paper_data.get("chinaxiv_id", "")
             chinaxiv_url = paper_data.get("url", "")
 
             # Extract authors
@@ -65,16 +61,13 @@ class ChinaXivClient:
                 authors_list = []
 
             # Extract publication date
-            published_date = paper_data.get(
-                "publishDate") or paper_data.get("published_date")
+            published_date = paper_data.get("publishDate") or paper_data.get("published_date")
             if published_date:
                 try:
                     if isinstance(published_date, str):
-                        published_date = datetime.strptime(
-                            published_date.split("T")[0], "%Y-%m-%d")
+                        published_date = datetime.strptime(published_date.split("T")[0], "%Y-%m-%d")
                 except Exception as e:
-                    logger.warning(
-                        f"Could not parse date {published_date}: {str(e)}")
+                    logger.warning(f"Could not parse date {published_date}: {str(e)}")
                     published_date = datetime.now()
             else:
                 published_date = datetime.now()
@@ -94,8 +87,7 @@ class ChinaXivClient:
                 "pdf_url": paper_data.get("pdf_url", ""),
                 "primary_category": paper_data.get("category", ""),
                 "categories": (
-                    [paper_data.get("category", "")] if paper_data.get(
-                        "category") else []
+                    [paper_data.get("category", "")] if paper_data.get("category") else []
                 ),
                 "doi": paper_data.get("doi", ""),
                 "keywords": paper_data.get("keywords", []),
@@ -111,8 +103,7 @@ class ChinaXivClient:
         使用提供的搜索参数搜索 ChinaXiv
         """
         try:
-            keywords = " ".join(
-                search_params.keywords) if search_params.keywords else ""
+            keywords = " ".join(search_params.keywords) if search_params.keywords else ""
 
             logger.info(f"Executing ChinaXiv search with keywords: {keywords}")
 
@@ -128,8 +119,7 @@ class ChinaXivClient:
 
             # Add date filters if specified
             if search_params.start_date:
-                params["startDate"] = search_params.start_date.strftime(
-                    "%Y-%m-%d")
+                params["startDate"] = search_params.start_date.strftime("%Y-%m-%d")
             if search_params.end_date:
                 params["endDate"] = search_params.end_date.strftime("%Y-%m-%d")
 
@@ -158,19 +148,16 @@ class ChinaXivClient:
                                     self._prepare_chinaxiv_metadata(paper_data)
                                 )
                                 if paper_meta:
-                                    if self._apply_filters(
-                                            paper_meta, search_params):
+                                    if self._apply_filters(paper_meta, search_params):
                                         papers.append(paper_meta)
                     else:
                         logger.warning(
                             f"ChinaXiv API returned error: {data.get('message', 'Unknown error')}"
                         )
-                        papers = self._fallback_web_search(
-                            keywords, search_params)
+                        papers = self._fallback_web_search(keywords, search_params)
 
                 else:
-                    logger.warning(
-                        f"ChinaXiv API returned status {response.status_code}")
+                    logger.warning(f"ChinaXiv API returned status {response.status_code}")
                     papers = self._fallback_web_search(keywords, search_params)
 
             except Exception as api_error:
@@ -181,8 +168,7 @@ class ChinaXivClient:
 
             # Apply date filter and limit results
             papers = papers[: search_params.max_results]
-            logger.info(
-                f"Found {len(papers)} papers from ChinaXiv matching the criteria")
+            logger.info(f"Found {len(papers)} papers from ChinaXiv matching the criteria")
             return papers
 
         except Exception as e:
@@ -204,8 +190,7 @@ class ChinaXivClient:
             "url": item.get("url") or f"{self.base_url}/home.htm?id={item.get('id')}",
         }
 
-    def _fallback_web_search(self, keywords: str,
-                             search_params: ArxivSearchParams) -> List[Dict]:
+    def _fallback_web_search(self, keywords: str, search_params: ArxivSearchParams) -> List[Dict]:
         """
         Fallback to web scraping if API fails
         如果 API 失败，回退到网页抓取
@@ -217,15 +202,13 @@ class ChinaXivClient:
             # This is a placeholder for web scraping implementation
             # In production, you would use BeautifulSoup or similar
             # Currently returns empty list as ChinaXiv API is preferred
-            logger.warning(
-                "Web scraping not fully implemented, returning empty results")
+            logger.warning("Web scraping not fully implemented, returning empty results")
         except Exception as e:
             logger.error(f"Web scraping failed: {str(e)}")
 
         return papers
 
-    def _apply_filters(self, paper: Dict,
-                       search_params: ArxivSearchParams) -> bool:
+    def _apply_filters(self, paper: Dict, search_params: ArxivSearchParams) -> bool:
         """Apply date and content type filters"""
         # Date filter
         if search_params.start_date or search_params.end_date:

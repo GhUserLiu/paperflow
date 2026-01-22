@@ -35,9 +35,7 @@ class PDFManager:
             str: Sanitized filename
         """
         # Normalize unicode characters
-        filename = unicodedata.normalize(
-            "NFKD", title).encode(
-            "ASCII", "ignore").decode()
+        filename = unicodedata.normalize("NFKD", title).encode("ASCII", "ignore").decode()
 
         # Replace non-alphanumeric characters with spaces, preserving case
         filename = re.sub(r"[^\w\s-]", " ", filename)
@@ -79,8 +77,7 @@ class PDFManager:
 
         return pdf_path
 
-    async def download_pdf(
-            self, url: str, title: str) -> Tuple[Optional[Path], Optional[str]]:
+    async def download_pdf(self, url: str, title: str) -> Tuple[Optional[Path], Optional[str]]:
         """
         Download a PDF file and return its path and filename.
 
@@ -105,16 +102,14 @@ class PDFManager:
                     logger.info(f"Successfully downloaded PDF to {pdf_path}")
                     return pdf_path, pdf_path.name
                 else:
-                    logger.error(
-                        f"Failed to download PDF. Status: {response.status}")
+                    logger.error(f"Failed to download PDF. Status: {response.status}")
                     return None, None
 
         except Exception as e:
             logger.error(f"Error downloading PDF: {str(e)}")
             return None, None
 
-    def prepare_attachment_template(
-            self, filename: str, parent_item: str, filepath: Path) -> dict:
+    def prepare_attachment_template(self, filename: str, parent_item: str, filepath: Path) -> dict:
         """
         Prepare a Zotero attachment item template.
 

@@ -10,8 +10,7 @@ logger = logging.getLogger(__name__)
 class PaperProcessor:
     """Class to handle the processing of individual papers"""
 
-    def __init__(self, zotero_client, metadata_mapper,
-                 pdf_manager, summarizer, config):
+    def __init__(self, zotero_client, metadata_mapper, pdf_manager, summarizer, config):
         """
         Initialize the paper processor
 
@@ -38,15 +37,13 @@ class PaperProcessor:
             enabled: True to check duplicates only in the target collection
         """
         self.collection_only_dupcheck = enabled
-        logger.info(
-            f"Collection-only duplicate check: {'enabled' if enabled else 'disabled'}")
+        logger.info(f"Collection-only duplicate check: {'enabled' if enabled else 'disabled'}")
 
     def create_zotero_item(self, paper: Dict) -> Optional[str]:
         """Create a Zotero item from paper metadata"""
         try:
             mapped_data = self.metadata_mapper.map_metadata(paper)
-            return self.zotero_client.create_item(
-                "journalArticle", mapped_data)
+            return self.zotero_client.create_item("journalArticle", mapped_data)
         except ZoteroAPIError as e:
             logger.error(f"Error creating Zotero item: {str(e)}")
             return None
@@ -59,8 +56,7 @@ class PaperProcessor:
             logger.error(f"Error adding to collection: {str(e)}")
             return False
 
-    async def process_paper(self, paper: Dict,
-                            download_pdfs: bool = True) -> bool:
+    async def process_paper(self, paper: Dict, download_pdfs: bool = True) -> bool:
         """
         Process a single paper asynchronously
 
@@ -106,8 +102,7 @@ class PaperProcessor:
                         True
                     )
 
-            logger.info(
-                f"Processing paper: {paper_id if paper_id else 'unknown'} ({paper_source})")
+            logger.info(f"Processing paper: {paper_id if paper_id else 'unknown'} ({paper_source})")
 
             # Create main Zotero item
             item_key = self.create_zotero_item(paper)
@@ -143,34 +138,27 @@ class PaperProcessor:
                     )
 
                     # Upload the attachment
-                    result = self.zotero_client.zot.upload_attachments(
-                        [attachment_template])
+                    result = self.zotero_client.zot.upload_attachments([attachment_template])
 
                     if not result:
-                        logger.error(
-                            "No result returned from upload_attachments")
+                        logger.error("No result returned from upload_attachments")
                         return False
 
                     # Check attachment creation status
                     has_attachment = (
-                        len(result.get("success", [])) > 0 or len(
-                            result.get("unchanged", [])) > 0
+                        len(result.get("success", [])) > 0 or len(result.get("unchanged", [])) > 0
                     )
 
                     if not has_attachment:
                         if len(result.get("failure", [])) > 0:
-                            logger.error(
-                                f"Failed to upload attachment. Response: {result}")
+                            logger.error(f"Failed to upload attachment. Response: {result}")
                         else:
-                            logger.warning(
-                                f"Unexpected attachment result: {result}")
+                            logger.warning(f"Unexpected attachment result: {result}")
                         return False
 
-                    logger.info(
-                        f"Successfully processed PDF attachment for item {item_key}")
+                    logger.info(f"Successfully processed PDF attachment for item {item_key}")
 
-                    if self.summarizer and self.config.get(
-                            "summarizer", {}).get("enabled"):
+                    if self.summarizer and self.config.get("summarizer", {}).get("enabled"):
                         await self.summarizer.summarize(pdf_path, self.zotero_client, item_key)
 
                 except Exception as e:

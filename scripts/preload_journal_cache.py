@@ -77,8 +77,7 @@ TOP_JOURNALS = {
 logger = logging.getLogger(__name__)
 
 
-def preload_journal_metrics(client: OpenAlexClient,
-                            journals: list, category_name: str = "custom"):
+def preload_journal_metrics(client: OpenAlexClient, journals: list, category_name: str = "custom"):
     """
     预加载指定期刊列表的指标数据
 
@@ -156,14 +155,7 @@ def main():
     parser.add_argument(
         "--category",
         type=str,
-        choices=[
-            "general",
-            "cs_general",
-            "ai_ml",
-            "cv",
-            "conferences",
-            "autonomous",
-            "all"],
+        choices=["general", "cs_general", "ai_ml", "cv", "conferences", "autonomous", "all"],
         default="all",
         help="预加载的期刊分类（默认: all）",
     )
@@ -175,8 +167,7 @@ def main():
     print("\n" + "=" * 60)
     print("OpenAlex 期刊缓存预热工具 | Journal Cache Preloader")
     print("=" * 60)
-    print(
-        f"开始时间: {__import__('datetime').datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"开始时间: {__import__('datetime').datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 60 + "\n")
 
     try:
@@ -188,21 +179,18 @@ def main():
         # 预加载自定义期刊
         if args.custom:
             print("📝 自定义期刊列表")
-            total_success += preload_journal_metrics(
-                client, args.custom, "自定义")
+            total_success += preload_journal_metrics(client, args.custom, "自定义")
 
         # 预加载分类期刊
         if args.category == "all":
             print("\n📚 预加载所有默认期刊分类")
             for category, journals in TOP_JOURNALS.items():
                 print(f"\n--- {category.upper()} ---")
-                total_success += preload_journal_metrics(
-                    client, journals, category)
+                total_success += preload_journal_metrics(client, journals, category)
         elif args.category != "custom" and args.category in TOP_JOURNALS:
             print(f"\n📚 预加载分类: {args.category}")
             journals = TOP_JOURNALS[args.category]
-            total_success += preload_journal_metrics(
-                client, journals, args.category)
+            total_success += preload_journal_metrics(client, journals, args.category)
 
         # 输出总体统计
         print(f"\n{'=' * 60}")

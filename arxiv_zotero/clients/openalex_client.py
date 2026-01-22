@@ -47,8 +47,7 @@ class OpenAlexClient:
         Args:
             cache_dir: 缓存目录路径，默认为 config/journal_metrics_cache.json
         """
-        self.cache_dir = cache_dir or Path(
-            __file__).parent.parent.parent / "config"
+        self.cache_dir = cache_dir or Path(__file__).parent.parent.parent / "config"
         self.cache_file = self.cache_dir / "journal_metrics_cache.json"
         self.metrics_cache = {}
 
@@ -61,8 +60,7 @@ class OpenAlexClient:
         # 加载本地缓存
         self._load_cache()
 
-        logger.info(
-            f"OpenAlexClient initialized with cache: {self.cache_file}")
+        logger.info(f"OpenAlexClient initialized with cache: {self.cache_file}")
 
     def _load_cache(self):
         """从本地文件加载期刊指标缓存"""
@@ -75,8 +73,7 @@ class OpenAlexClient:
                         self.metrics_cache = data["metrics"]
                     else:
                         self.metrics_cache = data
-                logger.info(
-                    f"Loaded {len(self.metrics_cache)} cached journal metrics")
+                logger.info(f"Loaded {len(self.metrics_cache)} cached journal metrics")
             else:
                 self.metrics_cache = {}
                 logger.info("No existing cache found, starting fresh")
@@ -99,8 +96,7 @@ class OpenAlexClient:
             }
             with open(self.cache_file, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
-            logger.debug(
-                f"Saved {len(self.metrics_cache)} journal metrics to cache")
+            logger.debug(f"Saved {len(self.metrics_cache)} journal metrics to cache")
         except Exception as e:
             logger.error(f"Error saving cache: {str(e)}")
 
@@ -123,11 +119,7 @@ class OpenAlexClient:
             return None
 
         # 标准化 DOI（移除前缀）
-        clean_doi = doi.replace(
-            "https://doi.org/",
-            "").replace(
-            "http://doi.org/",
-            "").strip()
+        clean_doi = doi.replace("https://doi.org/", "").replace("http://doi.org/", "").strip()
 
         # 检查缓存
         cache_key = f"doi:{clean_doi}"
@@ -202,8 +194,7 @@ class OpenAlexClient:
                         # 保存到缓存
                         self.metrics_cache[cache_key] = metrics
                         self._save_cache()
-                        logger.info(
-                            f"Retrieved metrics for journal: {clean_name}")
+                        logger.info(f"Retrieved metrics for journal: {clean_name}")
                         return metrics
 
         except Exception as e:
@@ -237,8 +228,7 @@ class OpenAlexClient:
                 return response
 
             except Exception as e:
-                logger.warning(
-                    f"Request attempt {attempt + 1} failed: {str(e)}")
+                logger.warning(f"Request attempt {attempt + 1} failed: {str(e)}")
                 if attempt < self.MAX_RETRIES - 1:
                     time.sleep(self.RATE_LIMIT_DELAY * (attempt + 1))
 
@@ -276,8 +266,7 @@ class OpenAlexClient:
             logger.error(f"Error extracting metrics from work: {str(e)}")
             return None
 
-    def _extract_metrics_from_source(
-            self, source_data: Dict) -> Optional[Dict]:
+    def _extract_metrics_from_source(self, source_data: Dict) -> Optional[Dict]:
         """
         从 OpenAlex source 数据提取指标
 
@@ -373,7 +362,8 @@ class OpenAlexClient:
                 paper.get(
                     'title',
                     'Unknown')[
-                    :50]}")
+                    :50]}"
+        )
         return self._get_default_metrics()
 
     def _get_default_metrics(self) -> Dict:
@@ -400,8 +390,7 @@ class OpenAlexClient:
         start_time = time.time()
 
         for i, paper in enumerate(papers):
-            paper_id = paper.get("arxiv_id") or paper.get(
-                "chinaxiv_id") or str(i)
+            paper_id = paper.get("arxiv_id") or paper.get("chinaxiv_id") or str(i)
             metrics = self.get_metrics_for_paper(paper)
             results[paper_id] = metrics
 
@@ -436,7 +425,8 @@ class OpenAlexClient:
                 # 缓存已存在且有内容，跳过预热
                 logger.info(
                     f"Cache already exists ({
-                        size_mb:.2f} MB), skipping preload")
+                        size_mb:.2f} MB), skipping preload"
+                )
                 return False
 
         # 常见计算机科学期刊（精简版，只加载最常用的）

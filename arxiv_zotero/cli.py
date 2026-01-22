@@ -25,11 +25,7 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler(
-            LOG_DIR /
-            "arxiv_zotero.log",
-            mode="a",
-            encoding="utf-8"),
+        logging.FileHandler(LOG_DIR / "arxiv_zotero.log", mode="a", encoding="utf-8"),
     ],
 )
 logger = logging.getLogger(__name__)
@@ -44,8 +40,7 @@ def parse_date(date_str: Optional[str]) -> Optional[datetime]:
         parsed_date = datetime.strptime(date_str, "%Y-%m-%d")
         return parsed_date.replace(tzinfo=pytz.UTC)  # Make timezone-aware
     except ValueError:
-        raise argparse.ArgumentTypeError(
-            f"Invalid date format: {date_str}. Use YYYY-MM-DD")
+        raise argparse.ArgumentTypeError(f"Invalid date format: {date_str}. Use YYYY-MM-DD")
 
 
 def load_yaml_config(config_path: Path) -> dict:
@@ -54,8 +49,7 @@ def load_yaml_config(config_path: Path) -> dict:
         with open(config_path, "r") as f:
             return yaml.safe_load(f)
     except Exception as e:
-        raise argparse.ArgumentTypeError(
-            f"Error loading config file: {str(e)}")
+        raise argparse.ArgumentTypeError(f"Error loading config file: {str(e)}")
 
 
 def parse_arguments():
@@ -64,31 +58,19 @@ def parse_arguments():
         description="ArXiv-Zotero Connector: Download and organize arXiv papers in Zotero"
     )
 
-    parser.add_argument(
-        "--config",
-        type=Path,
-        help="Path to YAML configuration file")
+    parser.add_argument("--config", type=Path, help="Path to YAML configuration file")
 
     # Search parameters
     parser.add_argument(
         "--keywords", "-k", nargs="+", help="Keywords to search for (space-separated)"
     )
-    parser.add_argument(
-        "--title",
-        "-t",
-        help="Search specifically in paper titles")
+    parser.add_argument("--title", "-t", help="Search specifically in paper titles")
     parser.add_argument(
         "--categories", "-c", nargs="+", help="arXiv categories to search in (e.g., cs.AI cs.MA)"
     )
     parser.add_argument("--author", "-a", help="Author name to search for")
-    parser.add_argument(
-        "--start-date",
-        type=parse_date,
-        help="Start date for papers (YYYY-MM-DD)")
-    parser.add_argument(
-        "--end-date",
-        type=parse_date,
-        help="End date for papers (YYYY-MM-DD)")
+    parser.add_argument("--start-date", type=parse_date, help="Start date for papers (YYYY-MM-DD)")
+    parser.add_argument("--end-date", type=parse_date, help="End date for papers (YYYY-MM-DD)")
     parser.add_argument(
         "--content-type",
         choices=["journal", "conference", "preprint"],
@@ -103,14 +85,8 @@ def parse_arguments():
     )
 
     # Application settings
-    parser.add_argument(
-        "--env-file",
-        type=Path,
-        help="Path to .env file containing credentials")
-    parser.add_argument(
-        "--no-pdf",
-        action="store_true",
-        help="Skip downloading PDFs")
+    parser.add_argument("--env-file", type=Path, help="Path to .env file containing credentials")
+    parser.add_argument("--no-pdf", action="store_true", help="Skip downloading PDFs")
 
     return parser.parse_args()
 
@@ -153,15 +129,11 @@ async def async_main():
             title_search=args.title or config_params.get("title_search"),
             categories=args.categories or config_params.get("categories"),
             author=args.author or config_params.get("author"),
-            start_date=args.start_date or parse_date(
-                config_params.get("start_date")),
-            end_date=args.end_date or parse_date(
-                config_params.get("end_date")),
-            content_type=args.content_type or config_params.get(
-                "content_type"),
+            start_date=args.start_date or parse_date(config_params.get("start_date")),
+            end_date=args.end_date or parse_date(config_params.get("end_date")),
+            content_type=args.content_type or config_params.get("content_type"),
             max_results=(
-                args.max_results if args.max_results != 50 else config_params.get(
-                    "max_results", 50)
+                args.max_results if args.max_results != 50 else config_params.get("max_results", 50)
             ),
         )
 
@@ -170,8 +142,7 @@ async def async_main():
             search_params=search_params, download_pdfs=not args.no_pdf
         )
 
-        logger.info(
-            f"Collection complete. Successfully processed: {successful}, Failed: {failed}")
+        logger.info(f"Collection complete. Successfully processed: {successful}, Failed: {failed}")
 
     except CredentialsError as e:
         logger.error(f"Credential error: {str(e)}")

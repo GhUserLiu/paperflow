@@ -8,6 +8,7 @@ import PyPDF2
 
 try:
     import google.generativeai as genai
+
     GENAI_AVAILABLE = True
 except ImportError:
     GENAI_AVAILABLE = False

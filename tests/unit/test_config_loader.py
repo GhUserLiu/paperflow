@@ -106,8 +106,7 @@ class TestConfigLoader:
         original_getenv = os.getenv
 
         def mock_getenv(key, default=None):
-            if key in ["ZOTERO_LIBRARY_ID", "ZOTERO_API_KEY",
-                       "TEMP_COLLECTION_KEY"]:
+            if key in ["ZOTERO_LIBRARY_ID", "ZOTERO_API_KEY", "TEMP_COLLECTION_KEY"]:
                 return None  # 模拟全部缺失
             return original_getenv(key, default)
 
