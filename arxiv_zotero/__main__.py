@@ -1,4 +1,4 @@
-﻿"""Main entry point for arxiv-zotero-connector when run as a module"""
+"""Main entry point for arxiv-zotero-connector when run as a module"""
 
 from .cli import main
 

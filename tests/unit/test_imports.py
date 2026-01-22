@@ -1,4 +1,4 @@
-﻿"""Test basic imports"""
+"""Test basic imports"""
 
 
 def test_imports():

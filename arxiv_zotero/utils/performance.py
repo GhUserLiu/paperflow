@@ -41,7 +41,8 @@ class PerformanceMonitor:
             }
         )
 
-    def track(self, func: Callable = None, *, name: Optional[str] = None) -> Callable:
+    def track(self, func: Callable = None, *,
+              name: Optional[str] = None) -> Callable:
         """
         性能监控装饰器
 
@@ -119,7 +120,8 @@ class PerformanceMonitor:
         stats = self.stats[func_name].copy()
         if stats["call_count"] > 0:
             stats["avg_time"] = stats["total_time"] / stats["call_count"]
-            stats["success_rate"] = (stats["success_count"] / stats["call_count"]) * 100
+            stats["success_rate"] = (
+                stats["success_count"] / stats["call_count"]) * 100
         else:
             stats["avg_time"] = 0.0
             stats["success_rate"] = 0.0
@@ -133,7 +135,8 @@ class PerformanceMonitor:
         Returns:
             所有统计信息字典
         """
-        return {func_name: self.get_stats(func_name) for func_name in self.stats}
+        return {func_name: self.get_stats(func_name)
+                for func_name in self.stats}
 
     def generate_report(self, sort_by: str = "total_time") -> str:
         """
@@ -152,17 +155,25 @@ class PerformanceMonitor:
         all_stats = self.get_all_stats()
 
         # 排序
-        valid_sort_fields = {"total_time", "call_count", "avg_time", "max_time", "min_time"}
+        valid_sort_fields = {
+            "total_time",
+            "call_count",
+            "avg_time",
+            "max_time",
+            "min_time"}
         if sort_by not in valid_sort_fields:
             sort_by = "total_time"
 
-        sorted_stats = sorted(all_stats.items(), key=lambda x: x[1].get(sort_by, 0), reverse=True)
+        sorted_stats = sorted(
+            all_stats.items(), key=lambda x: x[1].get(
+                sort_by, 0), reverse=True)
 
         # 生成报告
         lines = [
             "=" * 80,
             "性能监控报告 | Performance Monitoring Report",
-            f"生成时间 | Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            f"生成时间 | Generated: {
+                datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
             "=" * 80,
             "",
         ]
@@ -180,7 +191,8 @@ class PerformanceMonitor:
 
             if stats["last_call"]:
                 lines.append(
-                    f"  最后调用 | Last Call: {stats['last_call'].strftime('%Y-%m-%d %H:%M:%S')}"
+                    f"  最后调用 | Last Call: {
+                        stats['last_call'].strftime('%Y-%m-%d %H:%M:%S')}"
                 )
 
             if stats["last_error"]:
@@ -299,7 +311,8 @@ def timeit(func: Callable = None, *, verbose: bool = True) -> Callable:
             execution_time = time.time() - start_time
 
             if verbose:
-                logger.info(f"{f.__name__} 执行耗时 | Execution time: {execution_time:.4f}s")
+                logger.info(
+                    f"{f.__name__} 执行耗时 | Execution time: {execution_time:.4f}s")
 
             return result
 

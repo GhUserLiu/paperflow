@@ -248,7 +248,10 @@ class TestArxivClient:
 
         # 设置日期范围（过去7天）
         start_date = datetime.now(pytz.UTC) - timedelta(days=7)
-        params = ArxivSearchParams(keywords=["recent"], start_date=start_date, max_results=10)
+        params = ArxivSearchParams(
+            keywords=["recent"],
+            start_date=start_date,
+            max_results=10)
 
         results = client.search_arxiv(params)
 

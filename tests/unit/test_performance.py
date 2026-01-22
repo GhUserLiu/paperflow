@@ -358,7 +358,7 @@ class TestPerformanceMonitor:
         for _ in range(2):
             try:
                 conditional_function(should_fail=True)
-            except:
+            except BaseException:
                 pass
 
         stats = monitor.get_stats("success_rate_function")

@@ -4,8 +4,14 @@ import time
 from pathlib import Path
 from typing import Dict, Optional
 
-import google.generativeai as genai
 import PyPDF2
+
+try:
+    import google.generativeai as genai
+    GENAI_AVAILABLE = True
+except ImportError:
+    GENAI_AVAILABLE = False
+    genai = None
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +19,11 @@ logger = logging.getLogger(__name__)
 class PaperSummarizer:
     def __init__(self, api_key: str, config: Dict):
         """Initialize the summarizer with Gemini API key and configuration"""
+        if not GENAI_AVAILABLE:
+            raise ImportError(
+                "google-generativeai is not installed. "
+                "Install it with: pip install 'arxiv-zotero-connector[ai]'"
+            )
         self.config = config.get("summarizer", {})
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel("gemini-pro")
@@ -65,7 +76,8 @@ class PaperSummarizer:
 
             # Generate summary
             response = self.model.generate_content(
-                f"{prompt}\n\nText: {text[:8000]}"  # Limit input text to avoid token limits
+                # Limit input text to avoid token limits
+                f"{prompt}\n\nText: {text[:8000]}"
             )
             summary = response.text[:max_length]
 

@@ -218,10 +218,11 @@ async def search_papers(
             print(f"📊 智能补充模式：{strategy}")
             print(f"   初始搜索: {initial_results} 篇")
             print(f"   目标保存: {target_results} 篇")
-            print(f"   预估缓存命中率: {cache_hit_rate*100:.0f}%\n")
+            print(f"   预估缓存命中率: {cache_hit_rate * 100:.0f}%\n")
 
             # Configure search parameters with initial results
-            search_params = ArxivSearchParams(keywords=[keywords], max_results=initial_results)
+            search_params = ArxivSearchParams(
+                keywords=[keywords], max_results=initial_results)
 
             print(f"正在搜索论文来源...")
             print(f"提示: 这是独立的搜索脚本，不影响每日定时任务\n")
@@ -253,7 +254,8 @@ async def search_papers(
                     additional_multiplier = 1.5
 
                 needed = target_results - successful
-                additional_results = min(int(needed * additional_multiplier), 100)  # 最多再搜100篇
+                additional_results = min(
+                    int(needed * additional_multiplier), 100)  # 最多再搜100篇
 
                 print(f"补充搜索: 再搜索 {additional_results} 篇\n")
 
@@ -281,7 +283,8 @@ async def search_papers(
         else:
             # 配置搜索参数（无日期过滤 - 获取最新论文）
             # 配置搜索参数（无日期过滤 - 获取最新论文）
-            search_params = ArxivSearchParams(keywords=[keywords], max_results=max_results)
+            search_params = ArxivSearchParams(
+                keywords=[keywords], max_results=max_results)
 
             print(f"正在搜索论文来源...")
             print(f"提示: 这是独立的搜索脚本，不影响每日定时任务\n")
@@ -294,9 +297,9 @@ async def search_papers(
                 use_all_sources=enable_chinaxiv,  # 启用多来源搜索
             )
 
-        print(f"\n{'='*70}")
+        print(f"\n{'=' * 70}")
         print("搜索完成 | Search Complete")
-        print(f"{'='*70}")
+        print(f"{'=' * 70}")
         print(f"结束时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print(f"\n总计:")
         print(f"  成功采集: {successful} 篇")
@@ -363,7 +366,10 @@ def main():
         """,
     )
 
-    parser.add_argument("--keywords", type=str, help='搜索关键词（例如: "autonomous driving"）')
+    parser.add_argument(
+        "--keywords",
+        type=str,
+        help='搜索关键词（例如: "autonomous driving"）')
 
     parser.add_argument(
         "--max-results", type=int, default=20, metavar="N", help="最大结果数（默认: 20）"

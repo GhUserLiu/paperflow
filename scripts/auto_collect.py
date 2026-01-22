@@ -89,8 +89,12 @@ TIME_FILTER_HOURS = 25
 
 # Bilingual configuration
 # 双语配置
-USE_BILINGUAL_CONFIG = os.getenv("USE_BILINGUAL_CONFIG", "true").lower() == "true"  # 启用双语配置
-BILINGUAL_CONFIG_PATH = os.getenv("BILINGUAL_CONFIG_PATH", "config/bilingual_keywords.yaml")
+USE_BILINGUAL_CONFIG = os.getenv(
+    "USE_BILINGUAL_CONFIG",
+    "true").lower() == "true"  # 启用双语配置
+BILINGUAL_CONFIG_PATH = os.getenv(
+    "BILINGUAL_CONFIG_PATH",
+    "config/bilingual_keywords.yaml")
 
 
 async def collect_papers_for_category_bilingual(
@@ -107,14 +111,14 @@ async def collect_papers_for_category_bilingual(
     Returns:
         Tuple of (successful_count, failed_count)
     """
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"开始采集类别: {category} (双语模式)")
     print(f"目标集合: {collection_key}")
     print(f"时间范围: 过去 {TIME_FILTER_HOURS} 小时")
     print(f"配置文件: {BILINGUAL_CONFIG_PATH}")
     print(f"数据来源: arXiv (英文) + ChinaXiv (中文)")
     print(f"每个来源上限: 25 篇")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     try:
         # Initialize collector with ChinaXiv enabled
@@ -166,13 +170,13 @@ async def collect_papers_for_category(
     Returns:
         Tuple of (successful_count, failed_count)
     """
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"开始采集类别: {category}")
     print(f"查询语句: {query}")
     print(f"目标集合: {collection_key}")
     print(f"时间范围: 过去 {TIME_FILTER_HOURS} 小时")
     print(f"数据来源: arXiv" + (", ChinaXiv" if ENABLE_CHINAXIV else ""))
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     try:
         # Initialize collector with specific collection and ChinaXiv enabled
@@ -191,7 +195,8 @@ async def collect_papers_for_category(
         # Configure search parameters with time filter
         # 配置搜索参数(包含时间过滤)
         search_params = ArxivSearchParams(
-            keywords=[query], start_date=start_date, max_results=MAX_RESULTS_PER_CATEGORY
+            keywords=[
+                query], start_date=start_date, max_results=MAX_RESULTS_PER_CATEGORY
         )
 
         print(f"起始时间: {start_date.strftime('%Y-%m-%d %H:%M:%S')}")
@@ -252,7 +257,8 @@ async def main():
         collection_key = COLLECTION_MAP.get(category)
 
         if not collection_key:
-            print(f"\n[WARNING] {category} has no collection key configured, skipping")
+            print(
+                f"\n[WARNING] {category} has no collection key configured, skipping")
             continue
 
         # Choose collection method based on mode

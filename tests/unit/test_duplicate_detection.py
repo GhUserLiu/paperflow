@@ -86,7 +86,8 @@ async def test_duplicate_detection():
 
     print()
     print(f"Second Run Results:")
-    print(f"  Successful: {successful_2} papers (should all be skipped duplicates)")
+    print(
+        f"  Successful: {successful_2} papers (should all be skipped duplicates)")
     print(f"  Failed: {failed_2} papers")
     print()
 
@@ -97,7 +98,8 @@ async def test_duplicate_detection():
 
     if successful_2 == successful_1 and failed_2 == 0:
         print("✓ PASS: Duplicate detection is working correctly!")
-        print(f"  All {successful_2} papers were identified as duplicates and skipped.")
+        print(
+            f"  All {successful_2} papers were identified as duplicates and skipped.")
         return True
     else:
         print("✗ FAIL: Duplicate detection may not be working properly.")

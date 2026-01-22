@@ -58,7 +58,8 @@ class MetadataMapper:
                         )
                     else:
                         creators.append(
-                            {"creatorType": "author", "firstName": "", "lastName": author}
+                            {"creatorType": "author",
+                                "firstName": "", "lastName": author}
                         )
 
         return creators
@@ -69,7 +70,8 @@ class MetadataMapper:
 
     def transform_tags(self, categories: List[str]) -> List[Dict[str, str]]:
         """Transform categories into Zotero tags format with category cleaning"""
-        return [{"tag": cat.strip().lower()} for cat in categories if cat.strip()]
+        return [{"tag": cat.strip().lower()}
+                for cat in categories if cat.strip()]
 
     def clean_latex_markup(self, text: str) -> str:
         """
@@ -86,7 +88,8 @@ class MetadataMapper:
             r"\\textbf\{([^}]*)\}": r"\1",  # Replace \textbf{} with content
             r"\\emph\{([^}]*)\}": r"\1",  # Replace \emph{} with content
             r"\\cite\{[^}]*\}": "",  # Remove citations
-            r"\\[a-zA-Z]+\{([^}]*)\}": r"\1",  # Remove other common LaTeX commands
+            # Remove other common LaTeX commands
+            r"\\[a-zA-Z]+\{([^}]*)\}": r"\1",
             r"\$([^$]*)\$": r"\1",  # Remove inline math delimiters
         }
 
@@ -96,7 +99,8 @@ class MetadataMapper:
 
         return cleaned.strip()
 
-    def extract_journal_abbrev(self, journal_ref: Optional[str]) -> Optional[str]:
+    def extract_journal_abbrev(
+            self, journal_ref: Optional[str]) -> Optional[str]:
         """Extract journal abbreviation from journal reference"""
         if not journal_ref:
             return None
@@ -115,12 +119,14 @@ class MetadataMapper:
 
         return None
 
-    def extract_journal_name(self, journal_ref: Optional[str]) -> Optional[str]:
+    def extract_journal_name(
+            self, journal_ref: Optional[str]) -> Optional[str]:
         """Extract full journal name from journal reference"""
         if not journal_ref:
             return None
 
-        # Try to extract journal name (assuming format: "Journal Name Volume (Year) Pages")
+        # Try to extract journal name (assuming format: "Journal Name Volume
+        # (Year) Pages")
         match = re.match(r"^([^0-9]+)", journal_ref)
         if match:
             return match.group(1).strip()
@@ -131,7 +137,8 @@ class MetadataMapper:
         if not journal_ref:
             return None
 
-        # Try to extract volume (assuming format: "Journal Name Volume (Year) Pages")
+        # Try to extract volume (assuming format: "Journal Name Volume (Year)
+        # Pages")
         match = re.search(r"(\d+)\s*\(", journal_ref)
         if match:
             return match.group(1)
@@ -142,7 +149,8 @@ class MetadataMapper:
         if not journal_ref:
             return None
 
-        # Try to extract issue (assuming format: "Journal Name Volume.Issue (Year) Pages")
+        # Try to extract issue (assuming format: "Journal Name Volume.Issue
+        # (Year) Pages")
         match = re.search(r"(\d+)\.(\d+)", journal_ref)
         if match:
             return match.group(2)
@@ -153,7 +161,8 @@ class MetadataMapper:
         if not journal_ref:
             return None
 
-        # Try to extract pages (assuming format: "Journal Name Volume (Year) Pages")
+        # Try to extract pages (assuming format: "Journal Name Volume (Year)
+        # Pages")
         match = re.search(r"\)\s*(\d+(?:-\d+)?)", journal_ref)
         if match:
             return match.group(1)
@@ -166,7 +175,9 @@ class MetadataMapper:
         if "arxiv_id" in extra_fields and extra_fields["arxiv_id"]:
             extra_parts.append(f"arXiv: {extra_fields['arxiv_id']}")
         if "primary_category" in extra_fields and extra_fields["primary_category"]:
-            extra_parts.append(f"Primary Category: {extra_fields['primary_category']}")
+            extra_parts.append(
+                f"Primary Category: {
+                    extra_fields['primary_category']}")
         if "comment" in extra_fields and extra_fields["comment"]:
             extra_parts.append(f"Comment: {extra_fields['comment']}")
         if "version" in extra_fields and extra_fields["version"]:
@@ -203,7 +214,8 @@ class MetadataMapper:
                             if "default_value" in mapping:
                                 mapped_data[zotero_field] = mapping["default_value"]
                             elif "transformer" in mapping:
-                                transformer = getattr(self, mapping["transformer"])
+                                transformer = getattr(
+                                    self, mapping["transformer"])
                                 value = transformer(None)
                                 if value is not None:
                                     mapped_data[zotero_field] = value
@@ -211,7 +223,8 @@ class MetadataMapper:
 
                     # Handle multiple source fields
                     if isinstance(source_field, list):
-                        value = {field: source_data.get(field) for field in source_field}
+                        value = {field: source_data.get(
+                            field) for field in source_field}
                     else:
                         if source_field not in source_data:
                             if required:
@@ -230,7 +243,9 @@ class MetadataMapper:
                         mapped_data[zotero_field] = value
 
                 except Exception as field_error:
-                    logger.warning(f"Error mapping field '{zotero_field}': {str(field_error)}")
+                    logger.warning(
+                        f"Error mapping field '{zotero_field}': {
+                            str(field_error)}")
                     if required:
                         raise
 

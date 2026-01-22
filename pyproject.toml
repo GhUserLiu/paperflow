@@ -11,7 +11,7 @@ license = {text = "MIT"}
 authors = [
     {name = "Stepan Kropachev", email = "your.email@example.com"},
 ]
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 dependencies = [
     "python-dotenv>=1.0.0",
     "pyzotero>=1.5.0",
@@ -21,7 +21,6 @@ dependencies = [
     "aiohttp>=3.9.0",
     "pyyaml>=6.0",
     "PyPDF2>=3.0.0",
-    "google-generativeai>=0.3.0",
 ]
 
 [project.optional-dependencies]
@@ -54,14 +53,19 @@ type = [
     "types-requests",
 ]
 
+# AI 功能（可选）| AI features (optional)
+ai = [
+    "google-generativeai>=0.3.0",
+]
+
 # 所有开发依赖（便捷安装）
 all = [
-    "arxiv-zotero-connector[dev,test,lint,type]",
+    "arxiv-zotero-connector[dev,test,lint,type,ai]",
 ]
 
 [tool.black]
 line-length = 100
-target-version = ['py37', 'py38', 'py39', 'py310', 'py311']
+target-version = ['py38', 'py39', 'py310', 'py311']
 
 [tool.isort]
 profile = "black"

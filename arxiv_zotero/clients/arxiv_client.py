@@ -17,7 +17,8 @@ class ArxivClient:
 
     def __init__(self):
         """Initialize the ArxivClient"""
-        self.client = arxiv.Client(page_size=100, delay_seconds=3, num_retries=5)
+        self.client = arxiv.Client(
+            page_size=100, delay_seconds=3, num_retries=5)
 
     def filter_by_date(
         self, result: arxiv.Result, start_date: Optional[datetime], end_date: Optional[datetime]
@@ -46,7 +47,8 @@ class ArxivClient:
 
         return True
 
-    def filter_by_content_type(self, result: arxiv.Result, content_type: Optional[str]) -> bool:
+    def filter_by_content_type(
+            self, result: arxiv.Result, content_type: Optional[str]) -> bool:
         """Filter arxiv result by content type"""
         if not content_type:
             return True
@@ -59,7 +61,8 @@ class ArxivClient:
 
         if content_type == "journal":
             return bool(
-                journal_ref and not ("preprint" in journal_ref or "submitted" in journal_ref)
+                journal_ref and not (
+                    "preprint" in journal_ref or "submitted" in journal_ref)
             )
         elif content_type == "conference":
             return bool(
@@ -73,7 +76,8 @@ class ArxivClient:
 
         return True
 
-    async def _prepare_arxiv_metadata(self, result: arxiv.Result) -> Optional[Dict]:
+    async def _prepare_arxiv_metadata(
+            self, result: arxiv.Result) -> Optional[Dict]:
         """Prepare metadata from arxiv result"""
         try:
             return {
@@ -121,10 +125,12 @@ class ArxivClient:
                     ):
                         continue
 
-                    if not self.filter_by_content_type(result, search_params.content_type):
+                    if not self.filter_by_content_type(
+                            result, search_params.content_type):
                         continue
 
-                    future = executor.submit(asyncio.run, self._prepare_arxiv_metadata(result))
+                    future = executor.submit(
+                        asyncio.run, self._prepare_arxiv_metadata(result))
                     futures.append(future)
 
                 for future in as_completed(futures):
@@ -132,7 +138,9 @@ class ArxivClient:
                     if paper_metadata:
                         papers.append(paper_metadata)
 
-            logger.info(f"Found {len(papers)} papers matching the search criteria")
+            logger.info(
+                f"Found {
+                    len(papers)} papers matching the search criteria")
             return papers
 
         except Exception as e:

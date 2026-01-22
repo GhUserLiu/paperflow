@@ -30,7 +30,8 @@ class ConfigError(ZoteroConnectorError):
 class ZoteroAPIError(ZoteroConnectorError):
     """Zotero API 错误"""
 
-    def __init__(self, message: str, status_code: int = None, response: str = None):
+    def __init__(self, message: str, status_code: int = None,
+                 response: str = None):
         super().__init__(message)
         self.status_code = status_code
         self.response = response
@@ -137,7 +138,8 @@ def retry_on_error(
 
                     if attempt == max_attempts:
                         # 最后一次尝试失败
-                        logger.error(f"{func.__name__} 失败（已重试 {max_attempts} 次）: {e}")
+                        logger.error(
+                            f"{func.__name__} 失败（已重试 {max_attempts} 次）: {e}")
                         raise
 
                     # 计算等待时间

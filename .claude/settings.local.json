@@ -42,7 +42,10 @@
       "Bash(git remote get-url:*)",
       "Bash(for port in 7890 7891 10809 10808 1087)",
       "Bash(do echo:*)",
-      "Bash(break)"
+      "Bash(break)",
+      "Bash(scripts\\\\git-proxy-push:*)",
+      "Bash(pip index versions:*)",
+      "Bash(autopep8:*)"
     ]
   }
 }

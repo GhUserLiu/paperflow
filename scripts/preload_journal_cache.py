@@ -19,6 +19,7 @@ Preload Common Journal Metrics from OpenAlex
     - 离线也能使用缓存数据
 """
 
+from arxiv_zotero.clients.openalex_client import OpenAlexClient
 import logging
 import sys
 from pathlib import Path
@@ -26,7 +27,6 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from arxiv_zotero.clients.openalex_client import OpenAlexClient
 
 # 常见计算机科学和工程期刊列表
 TOP_JOURNALS = {
@@ -77,7 +77,8 @@ TOP_JOURNALS = {
 logger = logging.getLogger(__name__)
 
 
-def preload_journal_metrics(client: OpenAlexClient, journals: list, category_name: str = "custom"):
+def preload_journal_metrics(client: OpenAlexClient,
+                            journals: list, category_name: str = "custom"):
     """
     预加载指定期刊列表的指标数据
 
@@ -113,9 +114,9 @@ def preload_journal_metrics(client: OpenAlexClient, journals: list, category_nam
             failed_journals.append(journal)
 
     # 输出统计
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"{category_name} 预加载完成 | Preload Complete")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print(f"成功: {success_count}/{len(journals)}")
     print(f"失败: {len(failed_journals)}")
 
@@ -155,7 +156,14 @@ def main():
     parser.add_argument(
         "--category",
         type=str,
-        choices=["general", "cs_general", "ai_ml", "cv", "conferences", "autonomous", "all"],
+        choices=[
+            "general",
+            "cs_general",
+            "ai_ml",
+            "cv",
+            "conferences",
+            "autonomous",
+            "all"],
         default="all",
         help="预加载的期刊分类（默认: all）",
     )
@@ -167,7 +175,9 @@ def main():
     print("\n" + "=" * 60)
     print("OpenAlex 期刊缓存预热工具 | Journal Cache Preloader")
     print("=" * 60)
-    print(f"开始时间: {__import__('datetime').datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(
+        f"开始时间: {
+            __import__('datetime').datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 60 + "\n")
 
     try:
@@ -179,23 +189,26 @@ def main():
         # 预加载自定义期刊
         if args.custom:
             print("📝 自定义期刊列表")
-            total_success += preload_journal_metrics(client, args.custom, "自定义")
+            total_success += preload_journal_metrics(
+                client, args.custom, "自定义")
 
         # 预加载分类期刊
         if args.category == "all":
             print("\n📚 预加载所有默认期刊分类")
             for category, journals in TOP_JOURNALS.items():
                 print(f"\n--- {category.upper()} ---")
-                total_success += preload_journal_metrics(client, journals, category)
+                total_success += preload_journal_metrics(
+                    client, journals, category)
         elif args.category != "custom" and args.category in TOP_JOURNALS:
             print(f"\n📚 预加载分类: {args.category}")
             journals = TOP_JOURNALS[args.category]
-            total_success += preload_journal_metrics(client, journals, args.category)
+            total_success += preload_journal_metrics(
+                client, journals, args.category)
 
         # 输出总体统计
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print("总体统计 | Overall Statistics")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
         print(f"总成功数: {total_success}")
         print(f"缓存文件: {client.cache_file}")
 

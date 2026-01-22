@@ -27,7 +27,10 @@ class TestJournalRanker:
 
     def test_init_custom_weights(self):
         """测试使用自定义权重初始化"""
-        custom_weights = {"cited_by_percentile": 0.70, "h_index": 0.20, "impact_factor": 0.10}
+        custom_weights = {
+            "cited_by_percentile": 0.70,
+            "h_index": 0.20,
+            "impact_factor": 0.10}
         ranker = JournalRanker(weights=custom_weights)
 
         assert ranker.weights == custom_weights
@@ -47,7 +50,10 @@ class TestJournalRanker:
 
     def test_init_custom_default_scores(self):
         """测试自定义默认分数"""
-        custom_defaults = {"cited_by_percentile": 40.0, "h_index": 5.0, "impact_factor": 0.5}
+        custom_defaults = {
+            "cited_by_percentile": 40.0,
+            "h_index": 5.0,
+            "impact_factor": 0.5}
         ranker = JournalRanker(default_scores=custom_defaults)
 
         assert ranker.default_scores == custom_defaults
@@ -83,7 +89,11 @@ class TestJournalRanker:
         assert ranker._normalize_value(0.1, "impact_factor") == 0.0
         assert ranker._normalize_value(50, "impact_factor") == 1.0
         # (25-0.1)/(50-0.1) = 24.9/49.9 ≈ 0.499
-        assert abs(ranker._normalize_value(25, "impact_factor") - 0.499) < 0.001
+        assert abs(
+            ranker._normalize_value(
+                25,
+                "impact_factor") -
+            0.499) < 0.001
 
     def test_calculate_metric_score_with_value(self):
         """测试计算指标得分（有值）"""
@@ -125,7 +135,10 @@ class TestJournalRanker:
         ranker = JournalRanker()
 
         # 高影响力论文
-        metrics = {"cited_by_percentile": 95.5, "h_index": 250, "impact_factor": 14.255}
+        metrics = {
+            "cited_by_percentile": 95.5,
+            "h_index": 250,
+            "impact_factor": 14.255}
 
         score = ranker.calculate_composite_score(metrics)
 
@@ -265,7 +278,8 @@ class TestJournalRanker:
                 "openalex_score": 60.0,
                 "openalex_metrics": {"source": "openalex_work_api"},
             },
-            {"title": "Paper C", "openalex_score": 40.0, "openalex_metrics": {"source": "default"}},
+            {"title": "Paper C", "openalex_score": 40.0,
+                "openalex_metrics": {"source": "default"}},
         ]
 
         summary = ranker.get_ranking_summary(papers)
@@ -291,7 +305,10 @@ class TestJournalRanker:
     def test_custom_weights_ranking(self):
         """测试自定义权重的排序结果"""
         # 强调被引百分位的权重
-        custom_weights = {"cited_by_percentile": 0.80, "h_index": 0.15, "impact_factor": 0.05}
+        custom_weights = {
+            "cited_by_percentile": 0.80,
+            "h_index": 0.15,
+            "impact_factor": 0.05}
         ranker = JournalRanker(weights=custom_weights)
 
         papers = [

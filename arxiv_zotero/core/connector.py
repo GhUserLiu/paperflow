@@ -26,7 +26,11 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler(LOG_DIR / "arxiv_zotero.log", mode="a", encoding="utf-8"),
+        logging.FileHandler(
+            LOG_DIR /
+            "arxiv_zotero.log",
+            mode="a",
+            encoding="utf-8"),
     ],
 )
 logger = logging.getLogger(__name__)
@@ -60,7 +64,8 @@ class ArxivZoteroCollector:
             collection_only_dupcheck: Enable collection-only duplicate checking (default: False)
         """
         self.collection_key = collection_key
-        self.zotero_client = ZoteroClient(zotero_library_id, zotero_api_key, collection_key)
+        self.zotero_client = ZoteroClient(
+            zotero_library_id, zotero_api_key, collection_key)
         self.metadata_mapper = MetadataMapper(ARXIV_TO_ZOTERO_MAPPING)
         self.pdf_manager = PDFManager()
         self.paper_processor = PaperProcessor(
@@ -98,7 +103,8 @@ class ArxivZoteroCollector:
             return []
         return self.chinaxiv_client.search_chinaxiv(search_params)
 
-    def search_all_sources(self, search_params: ArxivSearchParams) -> List[Dict]:
+    def search_all_sources(
+            self, search_params: ArxivSearchParams) -> List[Dict]:
         """
         Search all enabled sources (arXiv and ChinaXiv)
         搜索所有启用的来源（arXiv 和 ChinaXiv）
@@ -143,13 +149,16 @@ class ArxivZoteroCollector:
             return papers
 
         try:
-            logger.info(f"Ranking {len(papers)} papers with OpenAlex metrics...")
+            logger.info(
+                f"Ranking {
+                    len(papers)} papers with OpenAlex metrics...")
 
             # Batch preload metrics
             metrics_map = self.openalex_client.preload_journal_metrics(papers)
 
             # Rank papers
-            ranked_papers = self.journal_ranker.rank_papers(papers, metrics_map)
+            ranked_papers = self.journal_ranker.rank_papers(
+                papers, metrics_map)
 
             # Output statistics
             summary = self.journal_ranker.get_ranking_summary(ranked_papers)
@@ -158,7 +167,9 @@ class ArxivZoteroCollector:
                 f"Avg={summary['avg_score']:.1f}, "
                 f"Max={summary['max_score']:.1f}, "
                 f"Min={summary['min_score']:.1f}, "
-                f"Papers with metrics={summary['papers_with_metrics']}/{summary['total_papers']}"
+                f"Papers with metrics={
+                    summary['papers_with_metrics']}/{
+                    summary['total_papers']}"
             )
 
             return ranked_papers
@@ -257,45 +268,59 @@ class ArxivZoteroCollector:
             # Search arXiv with English keywords
             # 使用英文关键词搜索 arXiv
             if bilingual_config.is_source_enabled("arxiv"):
-                logger.info(f"Searching arXiv for category '{category}' with English keywords...")
-                arxiv_keywords = bilingual_config.get_keywords_for_source("arxiv", category)
-                arxiv_max_results = bilingual_config.get_max_results_for_source("arxiv")
+                logger.info(
+                    f"Searching arXiv for category '{category}' with English keywords...")
+                arxiv_keywords = bilingual_config.get_keywords_for_source(
+                    "arxiv", category)
+                arxiv_max_results = bilingual_config.get_max_results_for_source(
+                    "arxiv")
 
                 for keyword in arxiv_keywords:
                     search_params = ArxivSearchParams(
                         keywords=[keyword],
                         start_date=start_date,
                         max_results=arxiv_max_results
-                        // len(arxiv_keywords),  # Divide results among keywords
+                        # Divide results among keywords
+                        // len(arxiv_keywords),
                     )
                     arxiv_papers = self.search_arxiv(search_params)
                     all_papers.extend(arxiv_papers)
-                    logger.info(f"  arXiv keyword '{keyword}': {len(arxiv_papers)} papers")
+                    logger.info(
+                        f"  arXiv keyword '{keyword}': {
+                            len(arxiv_papers)} papers")
 
                 # Limit total arXiv results
                 all_papers = all_papers[:arxiv_max_results]
-                logger.info(f"Total from arXiv (limited to {arxiv_max_results}): {len(all_papers)}")
+                logger.info(
+                    f"Total from arXiv (limited to {arxiv_max_results}): {
+                        len(all_papers)}")
 
             # Search ChinaXiv with Chinese keywords
             # 使用中文关键词搜索 ChinaXiv
             chinaxiv_papers_count = 0
-            if bilingual_config.is_source_enabled("chinaxiv") and self.enable_chinaxiv:
+            if bilingual_config.is_source_enabled(
+                    "chinaxiv") and self.enable_chinaxiv:
                 logger.info(
                     f"Searching ChinaXiv for category '{category}' with Chinese keywords..."
                 )
-                chinaxiv_keywords = bilingual_config.get_keywords_for_source("chinaxiv", category)
-                chinaxiv_max_results = bilingual_config.get_max_results_for_source("chinaxiv")
+                chinaxiv_keywords = bilingual_config.get_keywords_for_source(
+                    "chinaxiv", category)
+                chinaxiv_max_results = bilingual_config.get_max_results_for_source(
+                    "chinaxiv")
 
                 chinaxiv_results = []
                 for keyword in chinaxiv_keywords:
                     search_params = ArxivSearchParams(
                         keywords=[keyword],
                         start_date=start_date,
-                        max_results=chinaxiv_max_results // len(chinaxiv_keywords),
+                        max_results=chinaxiv_max_results // len(
+                            chinaxiv_keywords),
                     )
                     papers = self.search_chinaxiv(search_params)
                     chinaxiv_results.extend(papers)
-                    logger.info(f"  ChinaXiv keyword '{keyword}': {len(papers)} papers")
+                    logger.info(
+                        f"  ChinaXiv keyword '{keyword}': {
+                            len(papers)} papers")
 
                 # Limit total ChinaXiv results
                 chinaxiv_results = chinaxiv_results[:chinaxiv_max_results]
@@ -378,7 +403,8 @@ async def main():
             search_params=search_params, download_pdfs=True
         )
 
-        logger.info(f"Script completed. Successfully processed: {successful}, Failed: {failed}")
+        logger.info(
+            f"Script completed. Successfully processed: {successful}, Failed: {failed}")
 
     except Exception as e:
         logger.error(f"Script failed: {str(e)}")

@@ -66,9 +66,11 @@ class BilingualConfig:
 
     def is_source_enabled(self, source: str) -> bool:
         """Check if a source is enabled"""
-        return self.config.get("sources", {}).get(source, {}).get("enabled", False)
+        return self.config.get("sources", {}).get(
+            source, {}).get("enabled", False)
 
-    def get_keywords_for_source(self, source: str, category: str = None) -> List[str]:
+    def get_keywords_for_source(self, source: str,
+                                category: str = None) -> List[str]:
         """
         Get keywords for a specific source and category
 
@@ -90,13 +92,15 @@ class BilingualConfig:
             if isinstance(keywords_config, dict):
                 keywords = list(keywords_config.values())
             else:
-                keywords = keywords_config if isinstance(keywords_config, list) else []
+                keywords = keywords_config if isinstance(
+                    keywords_config, list) else []
 
         return keywords
 
     def get_max_results_for_source(self, source: str) -> int:
         """Get max results for a specific source"""
-        return self.config.get("sources", {}).get(source, {}).get("max_results", 25)
+        return self.config.get("sources", {}).get(
+            source, {}).get("max_results", 25)
 
     def get_collection_key(self, category: str) -> Optional[str]:
         """Get Zotero collection key for a category"""
@@ -108,7 +112,13 @@ class BilingualConfig:
 
     def get_all_categories(self) -> List[str]:
         """Get list of all configured categories"""
-        arxiv_keywords = self.config.get("sources", {}).get("arxiv", {}).get("keywords", {})
+        arxiv_keywords = self.config.get(
+            "sources",
+            {}).get(
+            "arxiv",
+            {}).get(
+            "keywords",
+            {})
         if isinstance(arxiv_keywords, dict):
             return list(arxiv_keywords.keys())
         return []
@@ -119,4 +129,5 @@ class BilingualConfig:
 
     def get_sorting_method(self) -> Dict:
         """Get sorting configuration"""
-        return self.config.get("sorting", {"method": "date", "order": "descending"})
+        return self.config.get(
+            "sorting", {"method": "date", "order": "descending"})
