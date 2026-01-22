@@ -166,9 +166,7 @@ class ArxivZoteroCollector:
                 f"Avg={summary['avg_score']:.1f}, "
                 f"Max={summary['max_score']:.1f}, "
                 f"Min={summary['min_score']:.1f}, "
-                f"Papers with metrics={
-                    summary['papers_with_metrics']}/{
-                    summary['total_papers']}"
+                f"Papers with metrics={summary['papers_with_metrics']}/{summary['total_papers']}"
             )
 
             return ranked_papers
@@ -285,14 +283,12 @@ class ArxivZoteroCollector:
                     arxiv_papers = self.search_arxiv(search_params)
                     all_papers.extend(arxiv_papers)
                     logger.info(
-                        f"  arXiv keyword '{keyword}': {
-                            len(arxiv_papers)} papers")
+                        f"  arXiv keyword '{keyword}': {len(arxiv_papers)} papers")
 
                 # Limit total arXiv results
                 all_papers = all_papers[:arxiv_max_results]
                 logger.info(
-                    f"Total from arXiv (limited to {arxiv_max_results}): {
-                        len(all_papers)}")
+                    f"Total from arXiv (limited to {arxiv_max_results}): {len(all_papers)}")
 
             # Search ChinaXiv with Chinese keywords
             # 使用中文关键词搜索 ChinaXiv
@@ -318,8 +314,7 @@ class ArxivZoteroCollector:
                     papers = self.search_chinaxiv(search_params)
                     chinaxiv_results.extend(papers)
                     logger.info(
-                        f"  ChinaXiv keyword '{keyword}': {
-                            len(papers)} papers")
+                        f"  ChinaXiv keyword '{keyword}': {len(papers)} papers")
 
                 # Limit total ChinaXiv results
                 chinaxiv_results = chinaxiv_results[:chinaxiv_max_results]

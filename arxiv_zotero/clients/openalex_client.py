@@ -238,10 +238,7 @@ class OpenAlexClient:
 
             except Exception as e:
                 logger.warning(
-                    f"Request attempt {
-                        attempt +
-                        1} failed: {
-                        str(e)}")
+                    f"Request attempt {attempt + 1} failed: {str(e)}")
                 if attempt < self.MAX_RETRIES - 1:
                     time.sleep(self.RATE_LIMIT_DELAY * (attempt + 1))
 
@@ -413,19 +410,12 @@ class OpenAlexClient:
                 elapsed = time.time() - start_time
                 rate = (i + 1) / elapsed
                 logger.info(
-                    f"Preloaded metrics for {
-                        i + 1}/{
-                        len(papers)} papers ({
-                        rate:.1f} papers/sec)"
+                    f"Preloaded metrics for {i + 1}/{len(papers)} papers ({rate:.1f} papers/sec)"
                 )
 
         elapsed = time.time() - start_time
         logger.info(
-            f"Preloaded metrics for {
-                len(results)} papers in {
-                elapsed:.1f}s ({
-                len(results) /
-                elapsed:.1f} papers/sec)"
+            f"Preloaded metrics for {len(results)} papers in {elapsed:.1f}s ({len(results) / elapsed:.1f} papers/sec)"
         )
         return results
 
@@ -480,8 +470,7 @@ class OpenAlexClient:
 
         if not silent:
             logger.info(
-                f"Auto-preloading {
-                    len(common_journals)} common journals (first-time setup)..."
+                f"Auto-preloading {len(common_journals)} common journals (first-time setup)..."
             )
 
         success_count = 0
@@ -494,8 +483,7 @@ class OpenAlexClient:
                 logger.debug(f"Failed to preload {journal}: {e}")
 
         logger.info(
-            f"Auto-preload complete: {success_count}/{
-                len(common_journals)} journals cached"
+            f"Auto-preload complete: {success_count}/{len(common_journals)} journals cached"
         )
         return True
 

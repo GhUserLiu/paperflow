@@ -163,18 +163,14 @@ class ChinaXivClient:
                                         papers.append(paper_meta)
                     else:
                         logger.warning(
-                            f"ChinaXiv API returned error: {
-                                data.get(
-                                    'message',
-                                    'Unknown error')}"
+                            f"ChinaXiv API returned error: {data.get('message', 'Unknown error')}"
                         )
                         papers = self._fallback_web_search(
                             keywords, search_params)
 
                 else:
                     logger.warning(
-                        f"ChinaXiv API returned status {
-                            response.status_code}")
+                        f"ChinaXiv API returned status {response.status_code}")
                     papers = self._fallback_web_search(keywords, search_params)
 
             except Exception as api_error:
@@ -187,8 +183,7 @@ class ChinaXivClient:
             # Apply date filter and limit results
             papers = papers[: search_params.max_results]
             logger.info(
-                f"Found {
-                    len(papers)} papers from ChinaXiv matching the criteria")
+                f"Found {len(papers)} papers from ChinaXiv matching the criteria")
             return papers
 
         except Exception as e:

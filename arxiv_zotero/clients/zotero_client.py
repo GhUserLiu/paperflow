@@ -96,11 +96,7 @@ class ZoteroClient:
         if self._request_count % 50 == 0:
             elapsed = time.time() - self._start_time
             rate = self._request_count / elapsed if elapsed > 0 else 0
-            logger.info(
-                f"API 请求统计: {self._request_count} 次, "
-                f"耗时 {elapsed:.1f} 秒, "
-                f"平均速率 {rate:.2f} 次/秒"
-            )
+            logger.info(f"API 请求统计: {self._request_count} 次, 耗时 {elapsed:.1f} 秒, 平均速率 {rate:.2f} 次/秒")
 
     def _is_cache_valid(self) -> bool:
         """检查缓存是否有效"""
@@ -172,13 +168,10 @@ class ZoteroClient:
                 raise ValueError(
                     f"Collection {self.collection_key} does not exist")
             logger.info(
-                f"Successfully validated collection {
-                    self.collection_key}")
+                f"Successfully validated collection {self.collection_key}")
         except Exception as e:
             logger.error(
-                f"Failed to validate collection {
-                    self.collection_key}: {
-                    str(e)}")
+                f"Failed to validate collection {self.collection_key}: {str(e)}")
             raise
 
     def create_item(self, template_type: str, metadata: Dict) -> Optional[str]:
@@ -339,14 +332,12 @@ class ZoteroClient:
                         if field_value and str(field_value).strip() == str(
                                 identifier).strip():
                             logger.info(
-                                f"Found duplicate {identifier_field} '{identifier}' in item {
-                                    item_data.get('key')} (collection-only)"
+                                f"Found duplicate {identifier_field} '{identifier}' in item {item_data.get('key')} (collection-only)"
                             )
                             return item_data.get("key")
 
                 logger.debug(
-                    f"No duplicate found for {identifier_field}='{identifier}' in collection {
-                        self.collection_key}"
+                    f"No duplicate found for {identifier_field}='{identifier}' in collection {self.collection_key}"
                 )
                 return None
 
@@ -382,8 +373,7 @@ class ZoteroClient:
                     if field_value and str(field_value).strip() == str(
                             identifier).strip():
                         logger.info(
-                            f"Found duplicate {identifier_field} '{identifier}' in item {
-                                item_data.get('key')}"
+                            f"Found duplicate {identifier_field} '{identifier}' in item {item_data.get('key')}"
                         )
                         return item_data.get("key")
 

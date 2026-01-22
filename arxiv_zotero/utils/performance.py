@@ -190,8 +190,7 @@ class PerformanceMonitor:
 
             if stats["last_call"]:
                 lines.append(
-                    f"  最后调用 | Last Call: {
-                        stats['last_call'].strftime('%Y-%m-%d %H:%M:%S')}"
+                    f"  最后调用 | Last Call: {stats['last_call'].strftime('%Y-%m-%d %H:%M:%S')}"
                 )
 
             if stats["last_error"]:

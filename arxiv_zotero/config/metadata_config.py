@@ -243,8 +243,7 @@ class MetadataMapper:
 
                 except Exception as field_error:
                     logger.warning(
-                        f"Error mapping field '{zotero_field}': {
-                            str(field_error)}")
+                        f"Error mapping field '{zotero_field}': {str(field_error)}")
                     if required:
                         raise
 
