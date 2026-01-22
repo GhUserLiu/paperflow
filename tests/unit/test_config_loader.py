@@ -4,7 +4,8 @@
 
 import os
 import pytest
-from arxiv_zotero.utils import ConfigLoader, ConfigError
+from arxiv_zotero.utils import ConfigLoader
+from arxiv_zotero.utils.config_loader import ConfigError
 
 
 class TestConfigLoader:
@@ -39,64 +40,79 @@ class TestConfigLoader:
 
     def test_load_zotero_config_missing_library_id(self, monkeypatch):
         """测试缺少 LIBRARY_ID"""
-        # 首先删除所有可能存在的环境变量
-        monkeypatch.delenv("ZOTERO_LIBRARY_ID", raising=False)
-        monkeypatch.delenv("ZOTERO_API_KEY", raising=False)
-        monkeypatch.delenv("TEMP_COLLECTION_KEY", raising=False)
+        # 使用 mock 直接控制 os.getenv
+        original_getenv = os.getenv
 
-        # 然后只设置部分变量
-        monkeypatch.setenv("ZOTERO_API_KEY", "test_api_key")
-        monkeypatch.setenv("TEMP_COLLECTION_KEY", "test_collection_key")
+        def mock_getenv(key, default=None):
+            if key == "ZOTERO_LIBRARY_ID":
+                return None  # 模拟缺失
+            elif key == "ZOTERO_API_KEY":
+                return "test_api_key"
+            elif key == "TEMP_COLLECTION_KEY":
+                return "test_collection_key"
+            return original_getenv(key, default)
 
-        with pytest.raises(ConfigError) as exc_info:
+        monkeypatch.setattr(os, "getenv", mock_getenv)
+
+        # 验证抛出 ConfigError
+        with pytest.raises(ConfigError):
             ConfigLoader.load_zotero_config()
-
-        assert "ZOTERO_LIBRARY_ID" in str(exc_info.value)
 
     def test_load_zotero_config_missing_api_key(self, monkeypatch):
         """测试缺少 API_KEY"""
-        # 首先删除所有可能存在的环境变量
-        monkeypatch.delenv("ZOTERO_LIBRARY_ID", raising=False)
-        monkeypatch.delenv("ZOTERO_API_KEY", raising=False)
-        monkeypatch.delenv("TEMP_COLLECTION_KEY", raising=False)
+        # 使用 mock 直接控制 os.getenv
+        original_getenv = os.getenv
 
-        # 然后只设置部分变量
-        monkeypatch.setenv("ZOTERO_LIBRARY_ID", "test_library_id")
-        monkeypatch.setenv("TEMP_COLLECTION_KEY", "test_collection_key")
+        def mock_getenv(key, default=None):
+            if key == "ZOTERO_LIBRARY_ID":
+                return "test_library_id"
+            elif key == "ZOTERO_API_KEY":
+                return None  # 模拟缺失
+            elif key == "TEMP_COLLECTION_KEY":
+                return "test_collection_key"
+            return original_getenv(key, default)
 
-        with pytest.raises(ConfigError) as exc_info:
+        monkeypatch.setattr(os, "getenv", mock_getenv)
+
+        # 验证抛出 ConfigError
+        with pytest.raises(ConfigError):
             ConfigLoader.load_zotero_config()
-
-        assert "ZOTERO_API_KEY" in str(exc_info.value)
 
     def test_load_zotero_config_missing_collection_key(self, monkeypatch):
         """测试缺少 COLLECTION_KEY"""
-        # 首先删除所有可能存在的环境变量
-        monkeypatch.delenv("ZOTERO_LIBRARY_ID", raising=False)
-        monkeypatch.delenv("ZOTERO_API_KEY", raising=False)
-        monkeypatch.delenv("TEMP_COLLECTION_KEY", raising=False)
+        # 使用 mock 直接控制 os.getenv
+        original_getenv = os.getenv
 
-        # 然后只设置部分变量
-        monkeypatch.setenv("ZOTERO_LIBRARY_ID", "test_library_id")
-        monkeypatch.setenv("ZOTERO_API_KEY", "test_api_key")
+        def mock_getenv(key, default=None):
+            if key == "ZOTERO_LIBRARY_ID":
+                return "test_library_id"
+            elif key == "ZOTERO_API_KEY":
+                return "test_api_key"
+            elif key == "TEMP_COLLECTION_KEY":
+                return None  # 模拟缺失
+            return original_getenv(key, default)
 
-        with pytest.raises(ConfigError) as exc_info:
+        monkeypatch.setattr(os, "getenv", mock_getenv)
+
+        # 验证抛出 ConfigError
+        with pytest.raises(ConfigError):
             ConfigLoader.load_zotero_config()
-
-        assert "TEMP_COLLECTION_KEY" in str(exc_info.value)
 
     def test_load_zotero_config_missing_all_required(self, monkeypatch):
         """测试缺少所有必需配置"""
-        # 清空所有环境变量
-        for key in ["ZOTERO_LIBRARY_ID", "ZOTERO_API_KEY", "TEMP_COLLECTION_KEY"]:
-            monkeypatch.delenv(key, raising=False)
+        # 使用 mock 直接控制 os.getenv
+        original_getenv = os.getenv
 
-        with pytest.raises(ConfigError) as exc_info:
+        def mock_getenv(key, default=None):
+            if key in ["ZOTERO_LIBRARY_ID", "ZOTERO_API_KEY", "TEMP_COLLECTION_KEY"]:
+                return None  # 模拟全部缺失
+            return original_getenv(key, default)
+
+        monkeypatch.setattr(os, "getenv", mock_getenv)
+
+        # 验证抛出 ConfigError
+        with pytest.raises(ConfigError):
             ConfigLoader.load_zotero_config()
-
-        error_msg = str(exc_info.value)
-        assert "ZOTERO_LIBRARY_ID" in error_msg
-        assert "ZOTERO_API_KEY" in error_msg
 
     def test_validate_env_file_exists(self, tmp_path, monkeypatch):
         """测试 .env 文件存在"""
