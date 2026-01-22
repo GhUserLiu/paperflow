@@ -102,7 +102,13 @@ pip install -e .
 ```env
 ZOTERO_LIBRARY_ID=19092277
 ZOTERO_API_KEY=HoLB2EnPj4PpHo1gQ65qy2aw
+TEMP_COLLECTION_KEY=AQNIN4ZZ  # Temp 集合（用于灵活搜索脚本）
 ```
+
+**集合说明**：
+
+- **Temp 集合** (AQNIN4ZZ): `search_papers.py` 的默认目标集合
+- **5 个研究集合**: general, communication, perception, control, security（详见上方表格）
 
 **如需使用自己的账户**：
 
