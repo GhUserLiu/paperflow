@@ -32,18 +32,86 @@ if sys.platform == 'win32':
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 from arxiv_zotero import ArxivZoteroCollector, ArxivSearchParams
+from arxiv_zotero.utils import ConfigLoader
+from arxiv_zotero.utils.errors import ConfigError
 
-# 配置
-ZOTERO_LIBRARY_ID = os.getenv("ZOTERO_LIBRARY_ID", "19092277")
-ZOTERO_API_KEY = os.getenv("ZOTERO_API_KEY", "HoLB2EnPj4PpHo1gQ65qy2aw")
-TEMP_COLLECTION_KEY = os.getenv("TEMP_COLLECTION_KEY", "AQNIN4ZZ")  # temp 集合（可通过环境变量配置）
+
+def load_config():
+    """加载并验证配置"""
+    try:
+        config = ConfigLoader.load_zotero_config()
+        return (
+            config["library_id"],
+            config["api_key"],
+            config["collection_key"],
+            config["enable_chinaxiv"]
+        )
+    except ConfigError as e:
+        print(f"\n❌ 配置错误: {e}")
+        print("\n💡 快速配置:")
+        print("   1. 复制 .env.example 到 .env:")
+        print("      cp .env.example .env")
+        print("   2. 在 .env 中填入你的 Zotero 凭证:")
+        print("      ZOTERO_LIBRARY_ID=your_library_id")
+        print("      ZOTERO_API_KEY=your_api_key")
+        print("      TEMP_COLLECTION_KEY=your_collection_key")
+        print("   3. 重新运行程序\n")
+        sys.exit(1)
+
+
+def _estimate_cache_hit_rate(enable_openalex_ranking: bool) -> float:
+    """
+    估算 OpenAlex 缓存命中率
+
+    Args:
+        enable_openalex_ranking: 是否启用 OpenAlex 排序
+
+    Returns:
+        估算的缓存命中率 (0.0-1.0)
+    """
+    from arxiv_zotero.clients.openalex_client import OpenAlexClient
+
+    if not enable_openalex_ranking:
+        return 0.0
+
+    try:
+        client = OpenAlexClient()
+        cache_file = client.cache_file
+
+        # 检查缓存文件是否存在和大小
+        if not cache_file.exists():
+            return 0.0  # 无缓存，首次运行
+
+        # 检查缓存文件大小（估算命中率）
+        size_mb = cache_file.stat().st_size / (1024 * 1024)
+
+        # 基于缓存文件大小的经验估算
+        # < 0.1 MB: 约 10% 命中率（新缓存）
+        # 0.1-1 MB: 约 50% 命中率
+        # > 1 MB: 约 80% 命中率（成熟缓存）
+
+        if size_mb < 0.1:
+            return 0.1
+        elif size_mb < 1.0:
+            return 0.5
+        else:
+            return 0.8
+
+    except Exception:
+        return 0.0  # 保守估算：无缓存
 
 
 async def search_papers(
     keywords: str,
     max_results: int = 20,
     download_pdfs: bool = True,
-    collection_key: str = TEMP_COLLECTION_KEY
+    collection_key: Optional[str] = None,
+    enable_chinaxiv: bool = False,
+    enable_openalex_ranking: bool = False,
+    openalex_weights: Optional[dict] = None,
+    target_results: Optional[int] = None,
+    collection_only_dupcheck: bool = False,
+    auto_preload: bool = True
 ):
     """
     搜索并保存论文到指定集合
@@ -53,40 +121,188 @@ async def search_papers(
         max_results: 最大结果数（默认 20）
         download_pdfs: 是否下载 PDF
         collection_key: 目标集合 KEY（默认 temp 集合）
+        enable_chinaxiv: 是否启用 ChinaXiv 来源
+        enable_openalex_ranking: 是否启用 OpenAlex 期刊指标排序
+        openalex_weights: OpenAlex 指标权重配置
+        target_results: 目标保存数量（自动补充到该数量）
+        collection_only_dupcheck: 是否仅在目标集合内查重
+        auto_preload: 是否自动预热缓存（默认 True）
     """
     print("\n" + "="*70)
-    print("arXiv 论文灵活搜索工具 | Flexible Search")
+    print("论文灵活搜索工具 | Flexible Search")
     print("="*70)
     print(f"开始时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"搜索关键词: {keywords}")
     print(f"最大结果数: {max_results}")
+    if target_results:
+        print(f"目标保存数量: {target_results}（自动补充）")
     print(f"目标集合: {collection_key} (temp)")
+    print(f"数据来源: arXiv" + (", ChinaXiv" if enable_chinaxiv else ""))
+    print(f"OpenAlex 排序: {'启用' if enable_openalex_ranking else '禁用'}")
+    if enable_openalex_ranking and openalex_weights:
+        print(f"  权重配置: {openalex_weights}")
+    print(f"查重模式: {'集合内（更快）' if collection_only_dupcheck else '全局（更安全）'}")
     print(f"下载 PDF: {'是' if download_pdfs else '否'}")
     print("="*70 + "\n")
 
     try:
-        # Initialize collector
+        # Initialize collector with ChinaXiv and OpenAlex support
+        # 初始化采集器（支持 ChinaXiv 和 OpenAlex）
         collector = ArxivZoteroCollector(
             zotero_library_id=ZOTERO_LIBRARY_ID,
             zotero_api_key=ZOTERO_API_KEY,
-            collection_key=collection_key
+            collection_key=collection_key,
+            enable_chinaxiv=enable_chinaxiv,
+            enable_openalex_ranking=enable_openalex_ranking,
+            openalex_weights=openalex_weights,
+            collection_only_dupcheck=collection_only_dupcheck
         )
 
-        # Configure search parameters (no date filter - get latest papers)
-        # 配置搜索参数（无日期过滤 - 获取最新论文）
-        search_params = ArxivSearchParams(
-            keywords=[keywords],
-            max_results=max_results
-        )
+        # 自动预热缓存（如果启用 OpenAlex 且缓存为空）
+        if enable_openalex_ranking and auto_preload:
+            from arxiv_zotero.clients.openalex_client import OpenAlexClient
 
-        print(f"正在搜索 arXiv...")
-        print(f"提示: 这是独立的搜索脚本，不影响每日定时任务\n")
+            print("🔄 检查 OpenAlex 缓存状态...")
+            openalex_client = OpenAlexClient()
 
-        # Run collection
-        successful, failed = await collector.run_collection_async(
-            search_params=search_params,
-            download_pdfs=download_pdfs
-        )
+            # 检查是否需要预热
+            should_preload = False
+            if not openalex_client.cache_file.exists():
+                print("   📭 缓存文件不存在，首次运行")
+                should_preload = True
+            else:
+                size_mb = openalex_client.cache_file.stat().st_size / (1024 * 1024)
+                if size_mb < 0.01:  # 小于 10KB 视为空缓存
+                    print(f"   📭 缓存文件为空 ({size_mb:.3f} MB)")
+                    should_preload = True
+                else:
+                    print(f"   ✅ 缓存已存在 ({size_mb:.2f} MB)")
+
+            # 执行预热
+            if should_preload:
+                print("\n🚀 自动预热常见期刊缓存（提升后续查询速度）...")
+                print("   预计耗时: 15-30 秒（仅首次运行）\n")
+
+                openalex_client.auto_preload_common_journals(silent=False)
+
+                # 显示缓存大小
+                if openalex_client.cache_file.exists():
+                    new_size_mb = openalex_client.cache_file.stat().st_size / (1024 * 1024)
+                    print(f"\n✅ 缓存预热完成！当前缓存大小: {new_size_mb:.2f} MB")
+                    print("   后续查询将使用缓存，速度提升 70-90%\n")
+                else:
+                    print("\n⚠️  缓存预热可能未完全成功，但不影响继续使用\n")
+
+            # 清理客户端
+            openalex_client.close()
+
+        # 自动补充逻辑（智能策略）
+        if target_results:
+            # 智能补充策略：基于缓存命中率动态调整初始搜索数量
+            cache_hit_rate = _estimate_cache_hit_rate(enable_openalex_ranking)
+
+            if cache_hit_rate > 0.5:
+                # 高缓存命中率（>50%）：初始搜索 1.2倍
+                multiplier = 1.2
+                strategy = "高缓存命中率"
+            elif cache_hit_rate > 0.2:
+                # 中等缓存命中率（20-50%）：初始搜索 1.5倍
+                multiplier = 1.5
+                strategy = "中等缓存命中率"
+            else:
+                # 低缓存命中率（<20%）或首次运行：初始搜索 2.0倍
+                multiplier = 2.0
+                strategy = "低缓存命中率（首次运行）"
+
+            initial_results = int(max_results * multiplier)
+            print(f"📊 智能补充模式：{strategy}")
+            print(f"   初始搜索: {initial_results} 篇")
+            print(f"   目标保存: {target_results} 篇")
+            print(f"   预估缓存命中率: {cache_hit_rate*100:.0f}%\n")
+
+            # Configure search parameters with initial results
+            search_params = ArxivSearchParams(
+                keywords=[keywords],
+                max_results=initial_results
+            )
+
+            print(f"正在搜索论文来源...")
+            print(f"提示: 这是独立的搜索脚本，不影响每日定时任务\n")
+
+            # Run collection with multi-source support
+            # 执行采集（支持多来源）
+            successful, failed = await collector.run_collection_async(
+                search_params=search_params,
+                download_pdfs=download_pdfs,
+                use_all_sources=enable_chinaxiv  # 启用多来源搜索
+            )
+
+            # 检查是否需要补充
+            if successful < target_results:
+                print(f"\n⚠️  当前保存 {successful} 篇，目标是 {target_results} 篇")
+                print(f"正在补充更多论文...")
+
+                # 智能补充：动态调整补充数量
+                # 如果第一次搜索成功率很低，增加补充数量
+                success_rate = successful / initial_results
+                if success_rate < 0.3:
+                    # 成功率很低（<30%），可能是重复率高，大幅增加补充
+                    additional_multiplier = 3
+                elif success_rate < 0.6:
+                    # 成功率中等（30-60%），适度增加补充
+                    additional_multiplier = 2
+                else:
+                    # 成功率较高（>60%），少量补充
+                    additional_multiplier = 1.5
+
+                needed = target_results - successful
+                additional_results = min(
+                    int(needed * additional_multiplier),
+                    100  # 最多再搜100篇
+                )
+
+                print(f"补充搜索: 再搜索 {additional_results} 篇\n")
+
+                # 新的搜索参数（避免重复）
+                search_params补充 = ArxivSearchParams(
+                    keywords=[keywords],
+                    max_results=additional_results
+                )
+
+                # 继续采集
+                additional_successful, additional_failed = await collector.run_collection_async(
+                    search_params=search_params补充,
+                    download_pdfs=download_pdfs,
+                    use_all_sources=enable_chinaxiv
+                )
+
+                successful += additional_successful
+                failed += additional_failed
+
+                if successful >= target_results:
+                    print(f"\n✅ 已达到目标数量: {successful} 篇")
+                else:
+                    print(f"\n⚠️  已尽力补充，当前: {successful} 篇（可能遇到重复或API限制）")
+            else:
+                print(f"\n✅ 已达到目标数量: {successful} 篇")
+        else:
+            # 配置搜索参数（无日期过滤 - 获取最新论文）
+            # 配置搜索参数（无日期过滤 - 获取最新论文）
+            search_params = ArxivSearchParams(
+                keywords=[keywords],
+                max_results=max_results
+            )
+
+            print(f"正在搜索论文来源...")
+            print(f"提示: 这是独立的搜索脚本，不影响每日定时任务\n")
+
+            # Run collection with multi-source support
+            # 执行采集（支持多来源）
+            successful, failed = await collector.run_collection_async(
+                search_params=search_params,
+                download_pdfs=download_pdfs,
+                use_all_sources=enable_chinaxiv  # 启用多来源搜索
+            )
 
         print(f"\n{'='*70}")
         print("搜索完成 | Search Complete")
@@ -110,6 +326,9 @@ async def search_papers(
 
 def main():
     """主函数 - 命令行接口"""
+    # 加载配置（移除硬编码密钥）
+    ZOTERO_LIBRARY_ID, ZOTERO_API_KEY, TEMP_COLLECTION_KEY, ENABLE_CHINAXIV = load_config()
+
     parser = argparse.ArgumentParser(
         description='灵活的 arXiv 论文搜索工具（独立脚本）',
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -127,10 +346,29 @@ def main():
   # 只搜索元数据，不下载 PDF
   python search_papers.py --keywords "reinforcement learning" --no-pdf
 
+  # 启用 OpenAlex 期刊指标排序
+  python search_papers.py --keywords "deep learning" --enable-openalex
+
+  # 自定义 OpenAlex 权重
+  python search_papers.py --keywords "neural networks" --enable-openalex \\
+    --openalex-weights '{"cited_by_percentile": 0.7, "h_index": 0.2, "impact_factor": 0.1}'
+
+  # 目标数量自动补充（初始搜索 75 篇，确保保存 50 篇）
+  python search_papers.py --keywords "deep learning" --max-results 50 --target-results 50
+
+  # 集合内查重（更快，适合单一集合使用）
+  python search_papers.py --keywords "autonomous driving" --collection-only-dupcheck
+
+  # 禁用自动缓存预热（如果已有缓存）
+  python search_papers.py --keywords "deep learning" --enable-openalex --no-auto-preload
+
 注意 | Notes:
   - 这是独立的搜索脚本，不影响 scripts/auto_collect.py
   - 保存到 Temp 集合，与定时任务分开
   - 重复检测已启用，自动跳过已存在的论文
+  - OpenAlex 排序按期刊影响力指标综合评分，优先显示高质量论文
+  - 自动预热：启用 OpenAlex 时首次运行会自动预加载常见期刊缓存（15-30秒）
+  - 如需禁用自动预热，使用 --no-auto-preload 参数
         """
     )
 
@@ -157,8 +395,45 @@ def main():
     parser.add_argument(
         '--collection',
         type=str,
-        default=TEMP_COLLECTION_KEY,
-        help=f'目标集合 KEY（默认: {TEMP_COLLECTION_KEY} - temp集合）'
+        default=None,
+        help='目标集合 KEY（默认: TEMP_COLLECTION_KEY 环境变量）'
+    )
+
+    parser.add_argument(
+        '--enable-chinaxiv',
+        action='store_true',
+        help='启用 ChinaXiv 来源搜索（同时从 arXiv 和 ChinaXiv 检索）'
+    )
+
+    parser.add_argument(
+        '--enable-openalex',
+        action='store_true',
+        help='启用 OpenAlex 期刊指标排序（按被引百分位、h指数、影响因子综合评分）'
+    )
+
+    parser.add_argument(
+        '--openalex-weights',
+        type=str,
+        help='OpenAlex 指标权重配置（JSON 格式，例如: \'{"cited_by_percentile": 0.5, "h_index": 0.3, "impact_factor": 0.2}\'）'
+    )
+
+    parser.add_argument(
+        '--target-results',
+        type=int,
+        metavar='N',
+        help='目标保存数量（自动补充到该数量，例如: --target-results 50）'
+    )
+
+    parser.add_argument(
+        '--collection-only-dupcheck',
+        action='store_true',
+        help='仅在该集合内查重（更快，但允许跨集合重复）'
+    )
+
+    parser.add_argument(
+        '--no-auto-preload',
+        action='store_true',
+        help='禁用自动缓存预热（默认：启用 OpenAlex 时自动预热）'
     )
 
     args = parser.parse_args()
@@ -167,13 +442,38 @@ def main():
     if not args.keywords:
         parser.error("必须提供 --keywords 参数\n示例: python search_papers.py --keywords \"autonomous driving\"")
 
+    # 使用默认 collection_key 如果未指定
+    if args.collection is None:
+        args.collection = TEMP_COLLECTION_KEY
+
+    # 解析 OpenAlex 权重配置
+    openalex_weights = None
+    if args.openalex_weights:
+        try:
+            import json
+            openalex_weights = json.loads(args.openalex_weights)
+            # 验证权重总和
+            total_weight = sum(openalex_weights.values())
+            if abs(total_weight - 1.0) > 0.01:
+                print(f"警告: 权重总和为 {total_weight}，将自动归一化")
+        except json.JSONDecodeError:
+            parser.error("--openalex-weights 必须是有效的 JSON 格式")
+        except Exception as e:
+            parser.error(f"解析权重配置失败: {e}")
+
     # 运行搜索
     try:
         successful, failed = asyncio.run(search_papers(
             keywords=args.keywords,
             max_results=args.max_results,
             download_pdfs=not args.no_pdf,
-            collection_key=args.collection
+            collection_key=args.collection,
+            enable_chinaxiv=args.enable_chinaxiv or ENABLE_CHINAXIV,
+            enable_openalex_ranking=args.enable_openalex,
+            openalex_weights=openalex_weights,
+            target_results=args.target_results,
+            collection_only_dupcheck=args.collection_only_dupcheck,
+            auto_preload=not args.no_auto_preload
         ))
 
         # 根据结果设置退出码

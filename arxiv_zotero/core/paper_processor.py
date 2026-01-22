@@ -12,7 +12,7 @@ class PaperProcessor:
     def __init__(self, zotero_client, metadata_mapper, pdf_manager, summarizer, config):
         """
         Initialize the paper processor
-        
+
         Args:
             zotero_client: Instance of ZoteroClient
             metadata_mapper: Instance of MetadataMapper
@@ -26,6 +26,17 @@ class PaperProcessor:
         self.summarizer = summarizer
         self.config = config
         self.collection_key = zotero_client.collection_key
+        self.collection_only_dupcheck = False  # 默认全局查重
+
+    def set_collection_only_dupcheck(self, enabled: bool):
+        """
+        Set whether to use collection-only duplicate checking
+
+        Args:
+            enabled: True to check duplicates only in the target collection
+        """
+        self.collection_only_dupcheck = enabled
+        logger.info(f"Collection-only duplicate check: {'enabled' if enabled else 'disabled'}")
 
     def create_zotero_item(self, paper: Dict) -> Optional[str]:
         """Create a Zotero item from paper metadata"""
@@ -56,19 +67,35 @@ class PaperProcessor:
             bool: True if processing was successful, False otherwise
         """
         try:
-            # Check for duplicate using arXiv ID (global search across all collections)
-            # 使用 arXiv ID 检查重复（全局搜索所有集合）
-            arxiv_id = paper.get('arxiv_id')
-            if arxiv_id:
+            # Check for duplicate using paper ID (arXiv ID or ChinaXiv ID)
+            # 使用论文 ID 检查重复（arXiv ID 或 ChinaXiv ID）
+            # Global search across all collections
+            # 全局搜索所有集合
+
+            # Get the appropriate ID based on source
+            paper_source = paper.get('source', 'arxiv')
+            paper_id = None
+            identifier_field = None
+
+            if paper_source == 'chinaxiv':
+                paper_id = paper.get('chinaxiv_id')
+                identifier_field = 'extra'  # ChinaXiv ID stored in extra field
+            else:
+                paper_id = paper.get('arxiv_id')
+                identifier_field = 'archiveLocation'  # arXiv ID stored in archiveLocation
+
+            if paper_id:
                 existing_item_key = self.zotero_client.check_duplicate(
-                    identifier=arxiv_id,
-                    identifier_field='archiveLocation'
+                    identifier=paper_id,
+                    identifier_field=identifier_field,
+                    collection_only=self.collection_only_dupcheck
                 )
                 if existing_item_key:
-                    logger.info(f"Paper {arxiv_id} already exists in library (item: {existing_item_key}), skipping")
+                    dup_type = "collection-only" if self.collection_only_dupcheck else "global"
+                    logger.info(f"Paper {paper_id} ({paper_source}) already exists in library ({dup_type}, item: {existing_item_key}), skipping")
                     return True  # Return True to indicate successful handling (skipped as duplicate)
 
-            logger.info(f"Processing paper: {arxiv_id if arxiv_id else 'unknown'}")
+            logger.info(f"Processing paper: {paper_id if paper_id else 'unknown'} ({paper_source})")
 
             # Create main Zotero item
             item_key = self.create_zotero_item(paper)

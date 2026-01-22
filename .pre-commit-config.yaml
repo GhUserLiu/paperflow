@@ -1,0 +1,128 @@
+# Pre-commit hooks configuration
+# 安装 | Install: pip install pre-commit
+# 激活 | Activate: pre-commit install
+# 跳过 | Skip: git commit --no-verify -m "message"
+
+default_language_version:
+  python: python3.10
+
+repos:
+  # 通用检查 | General checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      # 检测尾随空白 | Detect trailing whitespace
+      - id: trailing-whitespace
+        exclude: ^.*\.(md|rst)$
+
+      # 确保文件以换行符结尾 | Ensure files end with newline
+      - id: end-of-file-fixer
+
+      # 检查 YAML 文件语法 | Check YAML file syntax
+      - id: check-yaml
+
+      # 检查 JSON 文件语法 | Check JSON file syntax
+      - id: check-json
+
+      # 检查 TOML 文件语法 | Check TOML file syntax
+      - id: check-toml
+
+      # 检查大文件 | Check for large files
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+
+      # 防止合并冲突标记 | Prevent merge conflict markers
+      - id: check-merge-conflict
+
+      # 调试语句和断点检查 | Debug statements and breakpoint checks
+      - id: debug-statements
+
+      # 检测私有密钥 | Detect private keys
+      - id: detect-private-key
+
+      # 混合行结尾 | Mixed line ending
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+
+  # Python 代码格式化 | Python code formatting
+  - repo: https://github.com/psf/black
+    rev: 24.1.1
+    hooks:
+      - id: black
+        language_version: python3.10
+        args: ['--line-length=100']
+
+  # Import 排序 | Import sorting
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ['--profile=black', '--line-length=100']
+
+  # Flake8 代码检查 | Flake8 linting
+  - repo: https://github.com/PyCQA/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+        args: [
+          '--max-line-length=100',
+          '--extend-ignore=E203,W503,E501',
+          '--exclude=tests/,docs/,build/,dist/'
+        ]
+
+  # 类型检查 | Type checking
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - types-PyYAML
+          - types-requests
+        args: ['--ignore-missing-imports', '--no-strict-optional']
+        exclude: ^tests/
+
+  # 安全检查 | Security checks
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.6
+    hooks:
+      - id: bandit
+        args: ['-c', 'pyproject.toml']
+        additional_dependencies: ['bandit[toml]']
+        exclude: ^tests/
+
+  # Markdown 文档检查 | Markdown linting
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.39.0
+    hooks:
+      - id: markdownlint
+        args: ['--fix', '--disable', 'MD013', 'MD033', 'MD041']
+        exclude: ^docs/
+
+  # YAML 格式化 | YAML formatting
+  - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
+    rev: v2.12.0
+    hooks:
+      - id: pretty-format-yaml
+        args: ['--autofix', '--indent', '2']
+        exclude: ^.github/workflows/
+
+  # Shell 脚本检查 | Shell script checking
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.9.0.6
+    hooks:
+      - id: shellcheck
+        args: ['--severity=warning']
+        files: \.(sh|bash)$
+
+# CI/CD 配置 | CI/CD configuration
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false

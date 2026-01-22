@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "arxiv-zotero-connector"
-version = "0.1.0"
+version = "2.1.0"
 description = "Automatically collect papers from ArXiv and organize them in your Zotero library with AI-powered summarization"
 readme = "README.md"
 license = {text = "MIT"}
@@ -22,6 +22,41 @@ dependencies = [
     "pyyaml>=6.0",
     "PyPDF2>=3.0.0",
     "google-generativeai>=0.3.0",
+]
+
+[project.optional-dependencies]
+# 开发工具 | Development tools
+dev = [
+    "black>=24.0.0",
+    "isort>=5.12.0",
+    "mypy>=1.0.0",
+    "pre-commit>=3.6.0",
+]
+
+# 测试工具 | Testing tools
+test = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "pytest-mock>=3.10.0",
+]
+
+# 代码质量检查 | Code quality
+lint = [
+    "flake8>=6.0.0",
+    "pylint>=2.17.0",
+    "bandit>=1.7.0",
+]
+
+# 类型检查 | Type checking
+type = [
+    "types-PyYAML",
+    "types-requests",
+]
+
+# 所有开发依赖（便捷安装）
+all = [
+    "arxiv-zotero-connector[dev,test,lint,type]",
 ]
 
 [tool.black]

@@ -29,7 +29,15 @@
       "Bash(git config:*)",
       "Bash(git push:*)",
       "Bash(netstat:*)",
-      "Bash(pip uninstall:*)"
+      "Bash(pip uninstall:*)",
+      "Bash(curl:*)",
+      "Read(//c/Users/liuzh/Projects/Research/arxiv-zotero-connector/**)",
+      "Bash(wc:*)",
+      "Bash(pytest:*)",
+      "Bash(grep:*)",
+      "Bash(chmod:*)",
+      "Bash(pre-commit install:*)",
+      "Bash(pre-commit run:*)"
     ]
   }
 }

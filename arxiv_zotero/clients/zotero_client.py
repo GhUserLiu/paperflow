@@ -276,13 +276,14 @@ class ZoteroClient:
             logger.error(f"Error uploading attachment: {str(e)}")
             raise ZoteroAPIError(f"Failed to upload attachment: {str(e)}")
 
-    def check_duplicate(self, identifier: str, identifier_field: str = 'DOI') -> Optional[str]:
+    def check_duplicate(self, identifier: str, identifier_field: str = 'DOI', collection_only: bool = False) -> Optional[str]:
         """
         Check if an item already exists in the library (优化版:使用缓存)
 
         Args:
             identifier: Value to search for (DOI, arXiv ID, etc.)
             identifier_field: Field to search in (DOI, archiveLocation, etc.)
+            collection_only: If True, only search in the specified collection
 
         Returns:
             Optional[str]: Item key if found, None otherwise
@@ -292,8 +293,35 @@ class ZoteroClient:
             - 首次调用: 加载最近 500 篇论文到缓存 (1 次 API 请求)
             - 后续调用: 从缓存查找 (0 次 API 请求)
             - 缓存有效期: 5 分钟
+            - collection_only: 集合内查重更快 (约0.5-1秒 vs 2-3秒)
         """
         try:
+            # 集合内查重模式
+            if collection_only and self.collection_key:
+                logger.debug(f"使用集合内查重模式 (collection: {self.collection_key})")
+                self._rate_limit()
+                # 只查询指定集合，限制为100篇（足够快）
+                results = self.zot.items(
+                    collection=self.collection_key,
+                    sort='dateAdded',
+                    direction='desc',
+                    limit=100
+                )
+                self._track_request()
+
+                if results:
+                    for item in results:
+                        item_data = item.get('data', item) if isinstance(item, dict) else item
+                        field_value = item_data.get(identifier_field, '')
+
+                        if field_value and str(field_value).strip() == str(identifier).strip():
+                            logger.info(f"Found duplicate {identifier_field} '{identifier}' in item {item_data.get('key')} (collection-only)")
+                            return item_data.get('key')
+
+                logger.debug(f"No duplicate found for {identifier_field}='{identifier}' in collection {self.collection_key}")
+                return None
+
+            # 全局查重模式（原有逻辑）
             # 只对 archiveLocation 字段使用缓存优化
             if identifier_field == 'archiveLocation':
                 # 检查缓存是否有效,无效则刷新

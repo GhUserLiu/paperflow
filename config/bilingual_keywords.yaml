@@ -1,0 +1,56 @@
+# Bilingual Keywords Configuration for Multi-Source Paper Collection
+# 双语关键词配置 - 多来源论文采集
+
+# 全局配置
+global:
+  time_filter_hours: 25  # 仅检索过去 N 小时内的论文
+  download_pdfs: true     # 是否下载 PDF
+  total_max_results: 50   # 总结果数限制
+
+# 数据源配置
+sources:
+  # arXiv - 英文关键词
+  arxiv:
+    enabled: true
+    language: en
+    max_results: 25  # 每个 source 最多 25 篇
+
+    # 5个研究方向的英文查询
+    keywords:
+      general: '"intelligent connected vehicles" OR "autonomous driving"'
+      communication: '"V2X" OR "vehicle-to-everything" OR VANET'
+      perception: 'camera OR lidar OR radar OR "sensor fusion"'
+      control: '"path planning" OR "motion planning" OR MPC'
+      security: 'safety OR security OR privacy OR "adversarial attack"'
+
+  # ChinaXiv - 中文关键词
+  chinaxiv:
+    enabled: true
+    language: zh
+    max_results: 25  # 每个 source 最多 25 篇
+
+    # 5个研究方向的中文查询
+    keywords:
+      general: '"智能网联汽车" OR "自动驾驶"'
+      communication: '"车联网" OR "V2X"'
+      perception: '摄像头 OR 激光雷达 OR 雷达 OR "传感器融合"'
+      control: '"路径规划" OR "运动规划" OR "模型预测控制"'
+      security: '安全 OR 隐私 OR "对抗攻击"'
+
+# Zotero 集合配置
+collections:
+  general: "LRML5CDJ"
+  communication: "3E4NFDPR"
+  perception: "8CQV3SDV"
+  control: "8862N8CE"
+  security: "S97HI5KX"
+
+# 排序和筛选选项
+sorting:
+  method: "date"  # 可选: date（日期）, relevance（相关性）
+  order: "descending"  # descending（降序）或 ascending（升序）
+
+# 注意:
+# 1. arXiv 和 ChinaXiv 均不支持按被引次数排序（无此API）
+# 2. 建议使用发布日期排序，获取最新论文
+# 3. 如需按影响力筛选，建议在 Zotero 中手动管理

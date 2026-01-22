@@ -6,7 +6,7 @@ long_description = (here / "README.md").read_text(encoding="utf-8")
 
 setup(
     name="arxiv-zotero-connector",
-    version="2.0.0",
+    version="2.1.0",
     author="Stepan Kropachev",
     author_email="kropachev.st@gmail.com",
     description="Automatically collect papers from ArXiv and organize them in your Zotero library",

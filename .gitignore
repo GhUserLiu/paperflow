@@ -83,6 +83,16 @@ credentials.json
 config.yaml
 query_config.yaml
 
+# Runtime cache and temporary data
+config/journal_metrics_cache.json
+config/*.cache
+config/*.tmp
+
+# Downloaded papers and temporary files
+**/downloads/
+**/temp/
+**/tmp/
+
 # Temporary files
 nul
 *.tmp
