@@ -19,10 +19,11 @@ Preload Common Journal Metrics from OpenAlex
     - 离线也能使用缓存数据
 """
 
-from arxiv_zotero.clients.openalex_client import OpenAlexClient
 import logging
 import sys
 from pathlib import Path
+
+from arxiv_zotero.clients.openalex_client import OpenAlexClient
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
