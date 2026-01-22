@@ -62,8 +62,7 @@ def load_credentials(env_path: str = None) -> dict:
         if None in credentials.values():
             missing = [k for k, v in credentials.items() if v is None]
             raise CredentialsError(
-                f"Missing required environment variables: {
-                    ', '.join(missing)}")
+                f"Missing required environment variables: {', '.join(missing)}")
 
         # Load optional variables
         optional_vars = ["COLLECTION_KEY", "GOOGLE_API_KEY"]

@@ -172,8 +172,7 @@ class PerformanceMonitor:
         lines = [
             "=" * 80,
             "性能监控报告 | Performance Monitoring Report",
-            f"生成时间 | Generated: {
-                datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            f"生成时间 | Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
             "=" * 80,
             "",
         ]

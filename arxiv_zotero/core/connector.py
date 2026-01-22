@@ -150,8 +150,7 @@ class ArxivZoteroCollector:
 
         try:
             logger.info(
-                f"Ranking {
-                    len(papers)} papers with OpenAlex metrics...")
+                f"Ranking {len(papers)} papers with OpenAlex metrics...")
 
             # Batch preload metrics
             metrics_map = self.openalex_client.preload_journal_metrics(papers)

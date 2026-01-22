@@ -106,8 +106,7 @@ class PDFManager:
                     return pdf_path, pdf_path.name
                 else:
                     logger.error(
-                        f"Failed to download PDF. Status: {
-                            response.status}")
+                        f"Failed to download PDF. Status: {response.status}")
                     return None, None
 
         except Exception as e:

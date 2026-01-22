@@ -170,8 +170,7 @@ class ZoteroClient:
             if not any(
                     col["key"] == self.collection_key for col in collections):
                 raise ValueError(
-                    f"Collection {
-                        self.collection_key} does not exist")
+                    f"Collection {self.collection_key} does not exist")
             logger.info(
                 f"Successfully validated collection {
                     self.collection_key}")

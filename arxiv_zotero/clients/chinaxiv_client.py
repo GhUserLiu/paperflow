@@ -74,8 +74,7 @@ class ChinaXivClient:
                             published_date.split("T")[0], "%Y-%m-%d")
                 except Exception as e:
                     logger.warning(
-                        f"Could not parse date {published_date}: {
-                            str(e)}")
+                        f"Could not parse date {published_date}: {str(e)}")
                     published_date = datetime.now()
             else:
                 published_date = datetime.now()

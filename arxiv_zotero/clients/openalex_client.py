@@ -62,8 +62,7 @@ class OpenAlexClient:
         self._load_cache()
 
         logger.info(
-            f"OpenAlexClient initialized with cache: {
-                self.cache_file}")
+            f"OpenAlexClient initialized with cache: {self.cache_file}")
 
     def _load_cache(self):
         """从本地文件加载期刊指标缓存"""

@@ -107,8 +107,7 @@ class PaperProcessor:
                     )
 
             logger.info(
-                f"Processing paper: {
-                    paper_id if paper_id else 'unknown'} ({paper_source})")
+                f"Processing paper: {paper_id if paper_id else 'unknown'} ({paper_source})")
 
             # Create main Zotero item
             item_key = self.create_zotero_item(paper)

@@ -176,8 +176,7 @@ class MetadataMapper:
             extra_parts.append(f"arXiv: {extra_fields['arxiv_id']}")
         if "primary_category" in extra_fields and extra_fields["primary_category"]:
             extra_parts.append(
-                f"Primary Category: {
-                    extra_fields['primary_category']}")
+                f"Primary Category: {extra_fields['primary_category']}")
         if "comment" in extra_fields and extra_fields["comment"]:
             extra_parts.append(f"Comment: {extra_fields['comment']}")
         if "version" in extra_fields and extra_fields["version"]:

@@ -139,8 +139,7 @@ class ArxivClient:
                         papers.append(paper_metadata)
 
             logger.info(
-                f"Found {
-                    len(papers)} papers matching the search criteria")
+                f"Found {len(papers)} papers matching the search criteria")
             return papers
 
         except Exception as e:

@@ -176,8 +176,7 @@ def main():
     print("OpenAlex 期刊缓存预热工具 | Journal Cache Preloader")
     print("=" * 60)
     print(
-        f"开始时间: {
-            __import__('datetime').datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        f"开始时间: {__import__('datetime').datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 60 + "\n")
 
     try:
