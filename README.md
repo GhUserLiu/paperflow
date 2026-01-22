@@ -126,10 +126,10 @@ python -m arxiv_zotero.cli --help
 
 ### 基础使用
 
-#### 运行完整采集（5 个类别）
+#### 方式一：运行完整采集（5 个类别）
 
 ```bash
-python auto_collect.py
+python scripts/auto_collect.py
 ```
 
 **默认配置**：
@@ -137,6 +137,26 @@ python auto_collect.py
 - 总计最多 **250 篇** 论文
 - 自动下载 PDF 并上传
 - 自动跳过重复文献
+
+#### 方式二：灵活搜索（自定义关键词）⭐ 新增
+
+```bash
+# 搜索特定关键词（默认 20 篇，保存到 Temp 集合）
+python scripts/search_papers.py --keywords "autonomous driving"
+
+# 指定结果数量
+python scripts/search_papers.py --keywords "deep learning" --max-results 50
+
+# 不下载 PDF（更快）
+python scripts/search_papers.py --keywords "reinforcement learning" --no-pdf
+```
+
+**功能说明**：
+- 🔍 **灵活搜索**: 自定义任何关键词
+- 📦 **Temp 集合**: 保存到临时集合（AQNIN4ZZ），便于整理
+- ⚡ **最新论文**: 无时间限制，获取最新发布的论文
+- ✅ **重复检测**: 自动跳过已存在的论文
+- 🔄 **独立运行**: 不影响每日定时任务
 
 #### 修改采集数量
 
