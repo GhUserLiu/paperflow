@@ -53,8 +53,6 @@
    pip install -e .
    ```
 
-📖 **详细配置**: 查看 [PROJECT_GUIDE.md](PROJECT_GUIDE.md)
-
 ### 方式一：手动运行
 
 ```bash
@@ -619,15 +617,10 @@ arxiv-zotero-connector/
 ├── .env.example               # 环境变量示例
 ├── requirements.txt            # 依赖列表
 ├── setup.py                   # 安装配置
-├── README.md                  # 项目说明（本文件）
-└── PROJECT_GUIDE.md           # 完整使用指南
+└── README.md                  # 项目说明（本文件）
 ```
 
 ## 📚 相关资源
-
-### 📖 项目文档
-
-- [PROJECT_GUIDE.md](PROJECT_GUIDE.md) - **完整使用指南** (包含所有功能和配置说明)
 
 ### 官方文档
 
