@@ -46,7 +46,8 @@
       "Bash(scripts\\\\git-proxy-push:*)",
       "Bash(pip index versions:*)",
       "Bash(autopep8:*)",
-      "Bash(black:*)"
+      "Bash(black:*)",
+      "Bash(pip show:*)"
     ]
   }
 }
