@@ -13,3 +13,7 @@ pytz>=2023.3
 
 # PDF 处理
 PyPDF2>=3.0.0
+
+# 测试依赖
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
