@@ -47,7 +47,8 @@
       "Bash(pip index versions:*)",
       "Bash(autopep8:*)",
       "Bash(black:*)",
-      "Bash(pip show:*)"
+      "Bash(pip show:*)",
+      "Bash(mypy:*)"
     ]
   }
 }
