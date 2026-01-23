@@ -26,6 +26,15 @@ import sys
 from datetime import datetime
 from typing import Optional
 
+try:
+    from rich.console import Console
+    from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
+    from rich.panel import Panel
+    from rich.table import Table
+    RICH_AVAILABLE = True
+except ImportError:
+    RICH_AVAILABLE = False
+
 # Fix Windows encoding issue
 if sys.platform == "win32":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
@@ -407,48 +416,48 @@ def main():
         """,
     )
 
-    parser.add_argument("--keywords", type=str, help='搜索关键词（例如: "autonomous driving"）')
+    parser.add_argument("--keywords", "-k", type=str, help='搜索关键词（例如: "autonomous driving"）')
 
     parser.add_argument(
-        "--max-results", type=int, default=20, metavar="N", help="最大结果数（默认: 20）"
+        "--max-results", "-m", type=int, default=20, metavar="N", help="最大结果数（默认: 20）"
     )
 
-    parser.add_argument("--no-pdf", action="store_true", help="不下载 PDF 文件")
+    parser.add_argument("--no-pdf", "-n", action="store_true", help="不下载 PDF 文件")
 
     parser.add_argument(
-        "--collection",
+        "--collection", "-c",
         type=str,
         default=None,
         help="目标集合 KEY（默认: TEMP_COLLECTION_KEY 环境变量）",
     )
 
     parser.add_argument(
-        "--enable-chinaxiv",
+        "--enable-chinaxiv", "-x",
         action="store_true",
         help="启用 ChinaXiv 来源搜索（同时从 arXiv 和 ChinaXiv 检索）",
     )
 
     parser.add_argument(
-        "--enable-openalex",
+        "--enable-openalex", "-e",
         action="store_true",
         help="启用 OpenAlex 期刊指标排序（按被引百分位、h指数、影响因子综合评分）",
     )
 
     parser.add_argument(
-        "--openalex-weights",
+        "--openalex-weights", "-w",
         type=str,
         help='OpenAlex 指标权重配置（JSON 格式，例如: \'{"cited_by_percentile": 0.5, "h_index": 0.3, "impact_factor": 0.2}\'）',
     )
 
     parser.add_argument(
-        "--target-results",
+        "--target-results", "-t",
         type=int,
         metavar="N",
         help="目标保存数量（自动补充到该数量，例如: --target-results 50）",
     )
 
     parser.add_argument(
-        "--collection-only-dupcheck",
+        "--collection-only-dupcheck", "-d",
         action="store_true",
         help="仅在该集合内查重（更快，但允许跨集合重复）",
     )
@@ -457,6 +466,12 @@ def main():
         "--no-auto-preload",
         action="store_true",
         help="禁用自动缓存预热（默认：启用 OpenAlex 时自动预热）",
+    )
+
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="预览模式：显示将要执行的操作但不实际执行",
     )
 
     args = parser.parse_args()
@@ -494,6 +509,49 @@ def main():
             parser.error("--openalex-weights 必须是有效的 JSON 格式")
         except Exception as e:
             parser.error(f"解析权重配置失败: {e}")
+
+    # Dry-run 模式：显示配置但不执行
+    if args.dry_run:
+        if RICH_AVAILABLE:
+            console = Console()
+            console.print("\n[bold cyan]🔍 Dry-Run 预览模式[/bold cyan]\n")
+
+            table = Table(show_header=True, header_style="bold magenta")
+            table.add_column("配置项", style="cyan", width=30)
+            table.add_column("值", style="yellow")
+
+            table.add_row("搜索关键词", args.keywords)
+            table.add_row("最大结果数", str(args.max_results))
+            table.add_row("下载 PDF", "否" if args.no_pdf else "是")
+            table.add_row("目标集合", args.collection)
+            table.add_row("启用 ChinaXiv", "是" if args.enable_chinaxiv or ENABLE_CHINAXIV else "否")
+            table.add_row("启用 OpenAlex", "是" if args.enable_openalex else "否")
+            if args.enable_openalex and openalex_weights:
+                table.add_row("OpenAlex 权重", str(openalex_weights))
+            if args.target_results:
+                table.add_row("目标保存数量", str(args.target_results))
+            table.add_row("集合内查重", "是" if args.collection_only_dupcheck else "否")
+            table.add_row("自动预热缓存", "否" if args.no_auto_preload else "是（如果启用 OpenAlex）")
+
+            console.print(table)
+            console.print("\n[dim]💡 这是预览模式，不会实际执行操作。去掉 --dry-run 参数以运行程序。[/dim]\n")
+        else:
+            print("\n🔍 Dry-Run 预览模式\n")
+            print(f"搜索关键词: {args.keywords}")
+            print(f"最大结果数: {args.max_results}")
+            print(f"下载 PDF: {'否' if args.no_pdf else '是'}")
+            print(f"目标集合: {args.collection}")
+            print(f"启用 ChinaXiv: {'是' if args.enable_chinaxiv or ENABLE_CHINAXIV else '否'}")
+            print(f"启用 OpenAlex: {'是' if args.enable_openalex else '否'}")
+            if args.enable_openalex and openalex_weights:
+                print(f"OpenAlex 权重: {openalex_weights}")
+            if args.target_results:
+                print(f"目标保存数量: {args.target_results}")
+            print(f"集合内查重: {'是' if args.collection_only_dupcheck else '否'}")
+            print(f"自动预热缓存: {'否' if args.no_auto_preload else '是（如果启用 OpenAlex）'}")
+            print("\n💡 这是预览模式，不会实际执行操作。去掉 --dry-run 参数以运行程序。\n")
+
+        sys.exit(0)
 
     # 运行搜索
     try:

@@ -31,6 +31,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Concurrency control constants
+MAX_CONCURRENT_PAPERS = 5  # 同时处理的论文数量限制，避免 API 速率限制
+
 
 class ArxivZoteroCollector:
     def __init__(
@@ -101,7 +104,6 @@ class ArxivZoteroCollector:
     def search_all_sources(self, search_params: ArxivSearchParams) -> List[Dict]:
         """
         Search all enabled sources (arXiv and ChinaXiv)
-        搜索所有启用的来源（arXiv 和 ChinaXiv）
         """
         all_papers = []
 
@@ -235,9 +237,7 @@ class ArxivZoteroCollector:
             successful = 0
             failed = 0
 
-            # 并发控制：限制同时处理的论文数量，避免 API 限制
             # Concurrency control: Limit simultaneous paper processing to avoid API rate limits
-            MAX_CONCURRENT_PAPERS = 5
             semaphore = asyncio.Semaphore(MAX_CONCURRENT_PAPERS)
 
             async def process_paper(paper):
@@ -259,7 +259,7 @@ class ArxivZoteroCollector:
                 f"Collection complete. Successfully processed {successful} papers. Failed: {failed}"
             )
 
-            # 输出 API 统计信息
+            # Output API statistics
             api_stats = self.zotero_client.get_api_stats()
             logger.info(
                 f"API 请求统计: {api_stats['total_requests']} 次, "
@@ -283,7 +283,6 @@ class ArxivZoteroCollector:
     ) -> Tuple[int, int]:
         """
         Run bilingual collection using config file with different keywords for each source
-        使用配置文件运行双语采集，为不同来源使用不同的关键词
 
         Args:
             category: Research category (e.g., 'general', 'communication')
@@ -296,13 +295,11 @@ class ArxivZoteroCollector:
         """
         try:
             # Load bilingual configuration
-            # 加载双语配置
             bilingual_config = BilingualConfig(config_path)
 
             all_papers = []
 
             # Search arXiv with English keywords
-            # 使用英文关键词搜索 arXiv
             if bilingual_config.is_source_enabled("arxiv"):
                 logger.info(f"Searching arXiv for category '{category}' with English keywords...")
                 arxiv_keywords = bilingual_config.get_keywords_for_source("arxiv", category)
@@ -325,7 +322,6 @@ class ArxivZoteroCollector:
                 logger.info(f"Total from arXiv (limited to {arxiv_max_results}): {len(all_papers)}")
 
             # Search ChinaXiv with Chinese keywords
-            # 使用中文关键词搜索 ChinaXiv
             chinaxiv_papers_count = 0
             if bilingual_config.is_source_enabled("chinaxiv") and self.enable_chinaxiv:
                 logger.info(
@@ -359,12 +355,10 @@ class ArxivZoteroCollector:
                 return 0, 0
 
             # Process all papers with concurrency control
-            # 使用并发控制处理所有论文
             successful = 0
             failed = 0
 
-            # 并发控制：限制同时处理的论文数量
-            MAX_CONCURRENT_PAPERS = 5
+            # Concurrency control: Limit simultaneous paper processing
             semaphore = asyncio.Semaphore(MAX_CONCURRENT_PAPERS)
 
             async def process_paper(paper):

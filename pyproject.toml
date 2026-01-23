@@ -47,6 +47,11 @@ lint = [
     "bandit>=1.7.0",
 ]
 
+# CLI 用户体验 | CLI user experience
+cli = [
+    "rich>=13.0.0",
+]
+
 # 类型检查 | Type checking
 type = [
     "types-PyYAML",

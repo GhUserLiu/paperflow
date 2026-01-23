@@ -3,12 +3,25 @@ import time
 from collections import deque
 from functools import lru_cache
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 
 import requests
 from pyzotero import zotero
 
 logger = logging.getLogger(__name__)
+
+# Zotero API constants
+# Zotero API 限制: 每 10 分钟 100 次请求
+ZOTERO_RATE_LIMIT_WINDOW = 600  # 10分钟（秒）
+ZOTERO_RATE_LIMIT_MAX_REQUESTS = 100  # 最大请求数
+ZOTERO_RATE_LIMIT_THRESHOLD = 90  # 90% 限制时开始等待
+ZOTERO_MIN_REQUEST_INTERVAL = 6.0  # 最小请求间隔（秒）
+ZOTERO_RATE_LIMIT_BUFFER = 5  # 额外缓冲时间（秒）
+
+# 缓存常量
+CACHE_TTL_SECONDS = 300  # 缓存有效期 5 分钟（秒）
+LOOKUP_CACHE_MAX_SIZE = 1000  # 通用查重缓存最大条目数
+LOOKUP_CACHE_EVICT_SIZE = 200  # 缓存满时删除的条目数
 
 
 class ZoteroAPIError(Exception):
@@ -43,7 +56,7 @@ class ZoteroClient:
         # arXiv ID 缓存,避免重复请求
         self._arxiv_id_cache: Dict[str, str] = {}  # {arxiv_id: item_key}
         self._cache_timestamp: Optional[float] = None
-        self._cache_ttl = 300  # 缓存有效期 5 分钟
+        self._cache_ttl = CACHE_TTL_SECONDS  # 缓存有效期 5 分钟
 
         # 通用查找缓存 (TTL 缓存) - 缓存最近 1000 次查重结果
         self._lookup_cache: Dict[str, Optional[str]] = {}
@@ -56,8 +69,8 @@ class ZoteroClient:
 
         # 速率限制保护 (Zotero 限制: 每 10 分钟 100 次)
         # 即: 每 6 秒 1 次请求
-        self.request_times = deque(maxlen=100)
-        self.min_request_interval = 6.0  # 6 秒
+        self.request_times = deque(maxlen=ZOTERO_RATE_LIMIT_MAX_REQUESTS)
+        self.min_request_interval = ZOTERO_MIN_REQUEST_INTERVAL  # 最小请求间隔
 
         if collection_key:
             self._validate_collection()
@@ -71,16 +84,16 @@ class ZoteroClient:
         """
         now = time.time()
 
-        # 移除 10 分钟前的请求记录
-        while self.request_times and now - self.request_times[0] > 600:
+        # 移除 ZOTERO_RATE_LIMIT_WINDOW 秒前的请求记录
+        while self.request_times and now - self.request_times[0] > ZOTERO_RATE_LIMIT_WINDOW:
             self.request_times.popleft()
 
-        # 如果达到 90 次请求(90% 限制),开始等待
-        if len(self.request_times) >= 90:
-            sleep_time = 600 - (now - self.request_times[0]) + 5  # 额外 5 秒缓冲
+        # 如果达到 ZOTERO_RATE_LIMIT_THRESHOLD 次请求(90% 限制),开始等待
+        if len(self.request_times) >= ZOTERO_RATE_LIMIT_THRESHOLD:
+            sleep_time = ZOTERO_RATE_LIMIT_WINDOW - (now - self.request_times[0]) + ZOTERO_RATE_LIMIT_BUFFER  # 额外缓冲
             if sleep_time > 0:
                 logger.warning(
-                    f"接近 Zotero API 速率限制 ({len(self.request_times)}/100), "
+                    f"接近 Zotero API 速率限制 ({len(self.request_times)}/{ZOTERO_RATE_LIMIT_MAX_REQUESTS}), "
                     f"等待 {sleep_time:.1f} 秒..."
                 )
                 time.sleep(sleep_time)
@@ -137,7 +150,7 @@ class ZoteroClient:
             self._arxiv_id_cache = {}
             self._cache_timestamp = None
 
-    def get_api_stats(self) -> Dict[str, any]:
+    def get_api_stats(self) -> Dict[str, Any]:
         """
         获取 API 请求统计信息
 
@@ -169,7 +182,14 @@ class ZoteroClient:
                 raise ValueError(f"Collection {self.collection_key} does not exist")
             logger.info(f"Successfully validated collection {self.collection_key}")
         except Exception as e:
-            logger.error(f"Failed to validate collection {self.collection_key}: {str(e)}")
+            logger.error(
+                f"Failed to validate collection '{self.collection_key}': {str(e)}\n"
+                f"Solutions:\n"
+                f"  1. Verify the collection key is correct\n"
+                f"  2. Check your API key has permission to access this collection\n"
+                f"  3. Ensure the collection exists in your Zotero library\n"
+                f"Get collection keys: https://www.zotero.org/settings/keys"
+            )
             raise
 
     def create_item(self, template_type: str, metadata: Dict) -> Optional[str]:
@@ -196,11 +216,24 @@ class ZoteroClient:
                 logger.info(f"Successfully created item with key: {item_key}")
                 return item_key
             else:
-                logger.error(f"Failed to create Zotero item. Response: {response}")
+                logger.error(
+                    f"Failed to create Zotero item. Response: {response}\n"
+                    f"Solutions:\n"
+                    f"  1. Check API key permissions: https://www.zotero.org/settings/keys\n"
+                    f"  2. Verify metadata format is valid\n"
+                    f"  3. Check if you've exceeded API rate limits (100 requests per 10 minutes)\n"
+                    f"  4. Ensure network connectivity to Zotero API"
+                )
                 return None
 
         except Exception as e:
-            logger.error(f"Error creating Zotero item: {str(e)}")
+            logger.error(
+                f"Error creating Zotero item: {str(e)}\n"
+                f"Solutions:\n"
+                f"  1. Verify API key is valid and has write permissions\n"
+                f"  2. Check metadata does not contain invalid characters\n"
+                f"  3. Ensure you're not exceeding Zotero storage limits"
+            )
             raise ZoteroAPIError(f"Failed to create Zotero item: {str(e)}")
 
     def add_to_collection(self, item_key: str) -> bool:
@@ -369,9 +402,9 @@ class ZoteroClient:
             self._track_request()
 
             # 更新缓存（限制缓存大小）
-            if len(self._lookup_cache) >= 1000:
+            if len(self._lookup_cache) >= LOOKUP_CACHE_MAX_SIZE:
                 # 缓存太大，清除最旧的 20%
-                keys_to_remove = list(self._lookup_cache.keys())[:200]
+                keys_to_remove = list(self._lookup_cache.keys())[:LOOKUP_CACHE_EVICT_SIZE]
                 for key in keys_to_remove:
                     del self._lookup_cache[key]
 

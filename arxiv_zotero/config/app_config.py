@@ -4,8 +4,11 @@
 定义应用的所有配置项，提供类型安全的配置访问
 """
 
+import logging
 from dataclasses import dataclass, field
 from typing import Optional
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -72,7 +75,7 @@ class LoggingConfig:
 class AppConfig:
     """应用主配置 - 聚合所有配置"""
 
-    zotero: ZoteroConfig = field(default_factory=ZoteroConfig)
+    zotero: ZoteroConfig = field(default_factory=lambda: ZoteroConfig(library_id="", api_key=""))
     collection: CollectionConfig = field(default_factory=CollectionConfig)
     cache: CacheConfig = field(default_factory=CacheConfig)
     concurrency: ConcurrencyConfig = field(default_factory=ConcurrencyConfig)
