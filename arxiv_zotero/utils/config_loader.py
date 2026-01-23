@@ -52,20 +52,15 @@ class ConfigLoader:
                 f"获取 Zotero API Key: https://www.zotero.org/settings/keys"
             )
 
-        # 检查可选但重要的环境变量
-        collection_key = os.getenv("TEMP_COLLECTION_KEY")
-        if not collection_key:
-            raise ConfigError("缺少 TEMP_COLLECTION_KEY 环境变量\n" "请提供目标 Zotero 集合的 KEY")
-
-        config["TEMP_COLLECTION_KEY"] = collection_key
-
         # 添加可选配置
+        # TEMP_COLLECTION_KEY: 现在是可选的，某些脚本可能硬编码了集合 KEY
+        config["TEMP_COLLECTION_KEY"] = os.getenv("TEMP_COLLECTION_KEY")
         config["ENABLE_CHINAXIV"] = os.getenv("ENABLE_CHINAXIV", "false").lower() == "true"
 
         return {
             "library_id": config["ZOTERO_LIBRARY_ID"],
             "api_key": config["ZOTERO_API_KEY"],
-            "collection_key": config["TEMP_COLLECTION_KEY"],
+            "collection_key": config["TEMP_COLLECTION_KEY"],  # 可能为 None
             "enable_chinaxiv": config["ENABLE_CHINAXIV"],
         }
 
@@ -101,8 +96,7 @@ class ConfigLoader:
             if not os.getenv(var):
                 missing.append(var)
 
-        if not os.getenv("TEMP_COLLECTION_KEY"):
-            missing.append("TEMP_COLLECTION_KEY")
+        # TEMP_COLLECTION_KEY 不再是必需的，某些脚本可能硬编码了集合 KEY
 
         return len(missing) == 0, missing
 
