@@ -1,0 +1,62 @@
+# Production Environment Configuration
+# 生产环境配置
+
+# Logging Configuration
+logging:
+  level: INFO  # 生产环境使用 INFO 级别
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  handlers:
+    - file
+  file:
+    path: "logs/arxiv_zotero.log"
+    max_size_mb: 10
+    backup_count: 5
+
+# Rate Limiting
+rate_limiting:
+  enabled: true  # 启用速率限制
+  max_requests_per_minute: 10  # Zotero API 限制：100次/10分钟 ≈ 10次/分钟
+
+# Cache Settings
+cache:
+  arxiv_id_cache_ttl: 300  # 5分钟缓存
+  lookup_cache_max_size: 1000  # 大缓存提升性能
+  lookup_cache_evict_size: 200
+
+# API Settings
+api:
+  timeout: 60  # 生产环境更长超时
+  retry_attempts: 3  # 失败重试3次
+  retry_delay: 5  # 5秒延迟
+  exponential_backoff: true  # 指数退避
+
+# Paper Collection
+collection:
+  max_results_per_category: 20  # 生产环境默认值
+  download_pdfs: true  # 默认下载 PDF
+  concurrent_limit: 5  # 安全的并发限制
+
+# OpenAlex Settings
+openalex:
+  enabled: true
+  cache_dir: "config"
+  auto_preload: true  # 自动预加载缓存
+  preload_threshold_mb: 0.01  # 缓存小于10KB时预加载
+
+# Feature Flags
+features:
+  enable_chinaxiv: false  # 根据需要启用
+  enable_openalex_ranking: true  # 推荐：启用期刊排序
+  enable_summarization: false  # AI 功能可选
+
+# Error Handling
+error_handling:
+  notify_on_failure: true  # 失败时发送通知
+  max_consecutive_failures: 5  # 连续失败5次后停止
+  save_error_logs: true
+
+# Monitoring
+monitoring:
+  track_api_stats: true  # 跟踪API统计
+  log_performance_metrics: true  # 记录性能指标
+  alert_on_slow_requests: true  # 慢请求告警（>10秒）

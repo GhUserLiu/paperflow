@@ -1,0 +1,50 @@
+# Development Environment Configuration
+# 开发环境配置
+
+# Logging Configuration
+logging:
+  level: DEBUG  # 详细日志用于调试
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  handlers:
+    - console
+    - file
+
+# Rate Limiting
+rate_limiting:
+  enabled: false  # 开发环境禁用速率限制
+  max_requests_per_minute: null
+
+# Cache Settings
+cache:
+  arxiv_id_cache_ttl: 60  # 短缓存时间便于测试（1分钟）
+  lookup_cache_max_size: 100  # 较小的缓存
+  lookup_cache_evict_size: 20
+
+# API Settings
+api:
+  timeout: 30  # 请求超时（秒）
+  retry_attempts: 1  # 减少重试次数加快开发
+  retry_delay: 1  # 短延迟
+
+# Paper Collection
+collection:
+  max_results_per_category: 5  # 少量结果用于测试
+  download_pdfs: false  # 默认不下载 PDF 加快速度
+  concurrent_limit: 2  # 较低的并发限制
+
+# OpenAlex Settings
+openalex:
+  enabled: true
+  cache_dir: "config/dev_cache"
+  auto_preload: false  # 开发时不自动预加载
+
+# Feature Flags
+features:
+  enable_chinaxiv: false
+  enable_openalex_ranking: true
+  enable_summarization: false  # AI 功能默认关闭
+
+# Testing
+testing:
+  mock_api_responses: true  # 使用模拟响应
+  test_mode: true
