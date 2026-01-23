@@ -3,6 +3,12 @@ from pathlib import Path
 from typing import Dict, Optional, Tuple
 
 from ..clients.zotero_client import ZoteroAPIError
+from ..utils.errors import (
+    PaperDownloadError,
+    ZoteroUploadError,
+    DuplicatePaperError,
+    ZoteroConnectorError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -161,12 +167,37 @@ class PaperProcessor:
                     if self.summarizer and self.config.get("summarizer", {}).get("enabled"):
                         await self.summarizer.summarize(pdf_path, self.zotero_client, item_key)
 
-                except Exception as e:
+                except (PaperDownloadError, ZoteroUploadError) as e:
+                    # Known errors: PDF download or Zotero upload failed
                     logger.error(f"Error in PDF processing: {str(e)}")
+                    return False
+                except (OSError, IOError) as e:
+                    # File system errors
+                    logger.error(f"File system error during PDF processing: {str(e)}")
+                    return False
+                except Exception as e:
+                    # Unexpected errors - log with more context
+                    logger.error(
+                        f"Unexpected error in PDF processing for paper '{paper.get('title', 'Unknown')}': {str(e)}",
+                        exc_info=True,  # Include stack trace for debugging
+                    )
                     return False
 
             return True
 
+        except (ZoteroAPIError, DuplicatePaperError) as e:
+            # Known Zotero API and duplicate errors
+            logger.error(f"Error processing paper '{paper.get('title', 'Unknown')}': {str(e)}")
+            return False
+        except ZoteroConnectorError as e:
+            # Other known connector errors
+            logger.error(f"Connector error processing paper: {str(e)}")
+            return False
         except Exception as e:
-            logger.error(f"Error processing paper: {str(e)}")
+            # Unexpected errors - preserve stack trace and log full context
+            logger.error(
+                f"Unexpected error processing paper '{paper.get('title', 'Unknown')}' "
+                f"(ID: {paper.get('arxiv_id') or paper.get('chinaxiv_id', 'N/A')}): {str(e)}",
+                exc_info=True,  # Include stack trace for debugging
+            )
             return False

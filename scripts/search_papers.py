@@ -36,6 +36,50 @@ from arxiv_zotero.utils import ConfigLoader
 from arxiv_zotero.utils.errors import ConfigError
 
 
+def validate_keywords(keywords: str) -> str:
+    """验证搜索关键词的合法性和长度"""
+    if not keywords or not keywords.strip():
+        raise ValueError("关键词不能为空")
+
+    keywords = keywords.strip()
+
+    # 长度验证
+    if len(keywords) > 500:
+        raise ValueError(f"关键词过长（最多500字符，当前: {len(keywords)}字符）")
+
+    # 检查潜在的注入攻击字符
+    dangerous_chars = [';', '\n', '\r', '\x00', '\x1a']
+    if any(char in keywords for char in dangerous_chars):
+        raise ValueError("关键词包含非法字符（不允许: ; \\n \\r 等）")
+
+    return keywords
+
+
+def validate_max_results(max_results: int) -> int:
+    """验证最大结果数"""
+    if max_results < 1:
+        raise ValueError("max-results 必须大于 0")
+    if max_results > 1000:
+        raise ValueError("max-results 不能超过 1000（API 限制）")
+    return max_results
+
+
+def validate_collection_key(collection_key: Optional[str]) -> Optional[str]:
+    """验证集合 KEY"""
+    if collection_key is None:
+        return None
+
+    collection_key = collection_key.strip()
+    if not collection_key:
+        raise ValueError("集合 KEY 不能为空字符串")
+
+    # Zotero collection keys 通常是 uppercase alphanumeric
+    if not collection_key.replace('_', '').replace('-', '').isalnum():
+        print(f"⚠️  警告: 集合 KEY '{collection_key}' 格式可能不正确")
+
+    return collection_key
+
+
 def load_config():
     """加载并验证配置"""
     try:
@@ -422,6 +466,14 @@ def main():
         parser.error(
             '必须提供 --keywords 参数\n示例: python search_papers.py --keywords "autonomous driving"'
         )
+
+    # 输入验证
+    try:
+        args.keywords = validate_keywords(args.keywords)
+        args.max_results = validate_max_results(args.max_results)
+        args.collection = validate_collection_key(args.collection)
+    except ValueError as e:
+        parser.error(f"参数验证失败: {e}")
 
     # 使用默认 collection_key 如果未指定
     if args.collection is None:

@@ -157,7 +157,7 @@ jobs:
         run: pip list --outdated
 
       - name: Check for security vulnerabilities
-        run: pip check || true
+        run: pip check
 
   # 构建测试 | Build Test
   build:

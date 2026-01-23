@@ -194,16 +194,22 @@ class ArxivZoteroCollector:
             successful = 0
             failed = 0
 
+            # 并发控制：限制同时处理的论文数量，避免 API 限制
+            # Concurrency control: Limit simultaneous paper processing to avoid API rate limits
+            MAX_CONCURRENT_PAPERS = 5
+            semaphore = asyncio.Semaphore(MAX_CONCURRENT_PAPERS)
+
             async def process_paper(paper):
                 nonlocal successful, failed
-                try:
-                    if await self.paper_processor.process_paper(paper, download_pdfs):
-                        successful += 1
-                    else:
+                async with semaphore:
+                    try:
+                        if await self.paper_processor.process_paper(paper, download_pdfs):
+                            successful += 1
+                        else:
+                            failed += 1
+                    except Exception as e:
                         failed += 1
-                except Exception as e:
-                    failed += 1
-                    logger.error(f"Error processing paper: {str(e)}")
+                        logger.error(f"Error processing paper: {str(e)}")
 
             tasks = [process_paper(paper) for paper in papers]
             await asyncio.gather(*tasks)
@@ -311,20 +317,26 @@ class ArxivZoteroCollector:
             if not all_papers:
                 return 0, 0
 
-            # Process all papers
+            # Process all papers with concurrency control
+            # 使用并发控制处理所有论文
             successful = 0
             failed = 0
 
+            # 并发控制：限制同时处理的论文数量
+            MAX_CONCURRENT_PAPERS = 5
+            semaphore = asyncio.Semaphore(MAX_CONCURRENT_PAPERS)
+
             async def process_paper(paper):
                 nonlocal successful, failed
-                try:
-                    if await self.paper_processor.process_paper(paper, download_pdfs):
-                        successful += 1
-                    else:
+                async with semaphore:
+                    try:
+                        if await self.paper_processor.process_paper(paper, download_pdfs):
+                            successful += 1
+                        else:
+                            failed += 1
+                    except Exception as e:
                         failed += 1
-                except Exception as e:
-                    failed += 1
-                    logger.error(f"Error processing paper: {str(e)}")
+                        logger.error(f"Error processing paper: {str(e)}")
 
             tasks = [process_paper(paper) for paper in all_papers]
             await asyncio.gather(*tasks)
