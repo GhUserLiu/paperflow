@@ -48,7 +48,8 @@
       "Bash(autopep8:*)",
       "Bash(black:*)",
       "Bash(pip show:*)",
-      "Bash(mypy:*)"
+      "Bash(mypy:*)",
+      "Bash(git -c http.proxy= push origin main)"
     ]
   }
 }

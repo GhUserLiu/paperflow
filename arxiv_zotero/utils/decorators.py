@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 def log_and_reraise(
     error_logger: Optional[logging.Logger] = None,
     message: Optional[str] = None,
-    reraise: bool = True
+    reraise: bool = True,
 ):
     """
     Decorator to log exceptions and optionally re-raise them
@@ -32,6 +32,7 @@ def log_and_reraise(
             # Error will be logged but not re-raised (returns None)
             pass
     """
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -47,8 +48,8 @@ def log_and_reraise(
                     extra={
                         "function": func.__name__,
                         "args": str(args)[:100],  # Truncate long args
-                        "kwargs": str(kwargs)[:100]
-                    }
+                        "kwargs": str(kwargs)[:100],
+                    },
                 )
 
                 if reraise:
@@ -56,12 +57,12 @@ def log_and_reraise(
                 return None
 
         return wrapper
+
     return decorator
 
 
 def handle_api_errors(
-    default_return: Any = None,
-    error_types: Tuple[Type[Exception], ...] = (Exception,)
+    default_return: Any = None, error_types: Tuple[Type[Exception], ...] = (Exception,)
 ):
     """
     Decorator to handle API errors consistently
@@ -81,6 +82,7 @@ def handle_api_errors(
             # Only handles connection/timeout errors
             pass
     """
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -88,12 +90,12 @@ def handle_api_errors(
                 return func(*args, **kwargs)
             except error_types as e:
                 logger.warning(
-                    f"API error in {func.__name__}: {str(e)}",
-                    extra={"function": func.__name__}
+                    f"API error in {func.__name__}: {str(e)}", extra={"function": func.__name__}
                 )
                 return default_return
 
         return wrapper
+
     return decorator
 
 
@@ -101,7 +103,7 @@ def retry_on_failure(
     max_attempts: int = 3,
     delay: float = 1.0,
     backoff_factor: float = 2.0,
-    exceptions: Tuple[Type[Exception], ...] = (Exception,)
+    exceptions: Tuple[Type[Exception], ...] = (Exception,),
 ):
     """
     Decorator to retry function on failure with exponential backoff
@@ -118,6 +120,7 @@ def retry_on_failure(
             # Will retry up to 3 times with 2s, 4s, 8s delays
             pass
     """
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -139,10 +142,12 @@ def retry_on_failure(
                     )
 
                     import time
+
                     time.sleep(current_delay)
                     current_delay *= backoff_factor
 
         return wrapper
+
     return decorator
 
 
@@ -163,6 +168,7 @@ def validate_args(*validators: Callable):
         def calculate(x, y):
             return x + y
     """
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -172,6 +178,7 @@ def validate_args(*validators: Callable):
             return func(*args, **kwargs)
 
         return wrapper
+
     return decorator
 
 
@@ -188,6 +195,7 @@ def measure_time(log_level: int = logging.INFO):
             # Will log execution time
             pass
     """
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -200,12 +208,13 @@ def measure_time(log_level: int = logging.INFO):
             logger.log(
                 log_level,
                 f"{func.__name__} executed in {elapsed_time:.2f}s",
-                extra={"function": func.__name__, "execution_time": elapsed_time}
+                extra={"function": func.__name__, "execution_time": elapsed_time},
             )
 
             return result
 
         return wrapper
+
     return decorator
 
 
@@ -233,9 +242,7 @@ def rate_limit(calls_per_second: float):
             elapsed = time.time() - last_called[0]
             if elapsed < min_interval:
                 wait_time = min_interval - elapsed
-                logger.debug(
-                    f"Rate limiting {func.__name__}: waiting {wait_time:.2f}s"
-                )
+                logger.debug(f"Rate limiting {func.__name__}: waiting {wait_time:.2f}s")
                 time.sleep(wait_time)
 
             result = func(*args, **kwargs)
@@ -243,6 +250,7 @@ def rate_limit(calls_per_second: float):
             return result
 
         return wrapper
+
     return decorator
 
 
@@ -290,13 +298,11 @@ def cache_result(ttl_seconds: int = 300):
         wrapper.cache_clear = lambda: cache.clear()
 
         return wrapper
+
     return decorator
 
 
-def deprecated(
-    message: Optional[str] = None,
-    version: Optional[str] = None
-):
+def deprecated(message: Optional[str] = None, version: Optional[str] = None):
     """
     Decorator to mark functions as deprecated
 
@@ -309,6 +315,7 @@ def deprecated(
         def old_function():
             pass
     """
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -320,6 +327,7 @@ def deprecated(
             return func(*args, **kwargs)
 
         return wrapper
+
     return decorator
 
 
@@ -340,6 +348,7 @@ def robust_api_call(max_retries: int = 3, timeout: int = 30):
             # Retries on failure, measures time, logs errors
             pass
     """
+
     def decorator(func: Callable) -> Callable:
         func = retry_on_failure(max_attempts=max_retries)(func)
         func = measure_time()(func)
@@ -371,6 +380,7 @@ if __name__ == "__main__":
     def unstable_function():
         """Retries on failure"""
         import random
+
         if random.random() < 0.7:
             raise ConnectionError("Random failure")
         return "Success!"
@@ -380,6 +390,7 @@ if __name__ == "__main__":
     def slow_function():
         """Logs execution time"""
         import time
+
         time.sleep(0.1)
         return "Done"
 
@@ -394,8 +405,9 @@ if __name__ == "__main__":
     def expensive_computation(x):
         """Caches result for 5 seconds"""
         import time
+
         time.sleep(0.1)
-        return x ** 2
+        return x**2
 
     # Example 7: deprecated
     @deprecated(message="Use new_function() instead", version="2.0.0")

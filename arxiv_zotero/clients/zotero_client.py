@@ -90,7 +90,9 @@ class ZoteroClient:
 
         # 如果达到 ZOTERO_RATE_LIMIT_THRESHOLD 次请求(90% 限制),开始等待
         if len(self.request_times) >= ZOTERO_RATE_LIMIT_THRESHOLD:
-            sleep_time = ZOTERO_RATE_LIMIT_WINDOW - (now - self.request_times[0]) + ZOTERO_RATE_LIMIT_BUFFER  # 额外缓冲
+            sleep_time = (
+                ZOTERO_RATE_LIMIT_WINDOW - (now - self.request_times[0]) + ZOTERO_RATE_LIMIT_BUFFER
+            )  # 额外缓冲
             if sleep_time > 0:
                 logger.warning(
                     f"接近 Zotero API 速率限制 ({len(self.request_times)}/{ZOTERO_RATE_LIMIT_MAX_REQUESTS}), "
@@ -396,7 +398,9 @@ class ZoteroClient:
 
             # 缓存未命中，查询 API
             self._lookup_cache_misses += 1
-            logger.debug(f"通用缓存未命中 ({self._lookup_cache_hits} hits, {self._lookup_cache_misses} misses)")
+            logger.debug(
+                f"通用缓存未命中 ({self._lookup_cache_hits} hits, {self._lookup_cache_misses} misses)"
+            )
             self._rate_limit()
             results = self.zot.items(sort="dateAdded", direction="desc", limit=500)
             self._track_request()

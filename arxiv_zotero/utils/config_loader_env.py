@@ -7,6 +7,7 @@ from typing import Dict, Any, Optional
 
 try:
     import yaml
+
     YAML_AVAILABLE = True
 except ImportError:
     YAML_AVAILABLE = False
@@ -52,7 +53,7 @@ class EnvironmentConfig:
             return
 
         try:
-            with open(self.config_file, 'r', encoding='utf-8') as f:
+            with open(self.config_file, "r", encoding="utf-8") as f:
                 self.config = yaml.safe_load(f) or {}
 
             logger.info(f"Loaded {self.env} configuration from {self.config_file}")
@@ -66,21 +67,15 @@ class EnvironmentConfig:
         return {
             "logging": {
                 "level": "INFO",
-                "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+                "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
             },
-            "rate_limiting": {
-                "enabled": True,
-                "max_requests_per_minute": 10
-            },
-            "cache": {
-                "arxiv_id_cache_ttl": 300,
-                "lookup_cache_max_size": 1000
-            },
+            "rate_limiting": {"enabled": True, "max_requests_per_minute": 10},
+            "cache": {"arxiv_id_cache_ttl": 300, "lookup_cache_max_size": 1000},
             "collection": {
                 "max_results_per_category": 20,
                 "download_pdfs": True,
-                "concurrent_limit": 5
-            }
+                "concurrent_limit": 5,
+            },
         }
 
     def get(self, key: str, default: Any = None) -> Any:
@@ -98,7 +93,7 @@ class EnvironmentConfig:
             config = EnvironmentConfig('production')
             log_level = config.get('logging.level', 'INFO')
         """
-        keys = key.split('.')
+        keys = key.split(".")
         value = self.config
 
         for k in keys:
@@ -114,15 +109,15 @@ class EnvironmentConfig:
 
     def get_logging_config(self) -> Dict[str, Any]:
         """Get logging configuration"""
-        return self.get('logging', {})
+        return self.get("logging", {})
 
     def get_cache_config(self) -> Dict[str, Any]:
         """Get cache configuration"""
-        return self.get('cache', {})
+        return self.get("cache", {})
 
     def get_collection_config(self) -> Dict[str, Any]:
         """Get paper collection configuration"""
-        return self.get('collection', {})
+        return self.get("collection", {})
 
     def is_development(self) -> bool:
         """Check if running in development mode"""
@@ -168,19 +163,21 @@ def setup_logging_from_config(config: EnvironmentConfig):
     """
     log_config = config.get_logging_config()
 
-    log_level = getattr(logging, log_config.get('level', 'INFO').upper())
-    log_format = log_config.get('format', '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    log_level = getattr(logging, log_config.get("level", "INFO").upper())
+    log_format = log_config.get("format", "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
     logging.basicConfig(
         level=log_level,
         format=log_format,
         handlers=[
             logging.StreamHandler(),
-            logging.FileHandler("logs/arxiv_zotero.log", mode='a', encoding='utf-8')
-        ]
+            logging.FileHandler("logs/arxiv_zotero.log", mode="a", encoding="utf-8"),
+        ],
     )
 
-    logger.info(f"Logging configured for {config.env} environment (level: {log_config.get('level')})")
+    logger.info(
+        f"Logging configured for {config.env} environment (level: {log_config.get('level')})"
+    )
 
 
 # Example usage
