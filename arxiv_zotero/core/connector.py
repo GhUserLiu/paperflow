@@ -130,14 +130,55 @@ class ArxivZoteroCollector:
 
     def rank_papers_with_openalex(self, papers: List[Dict]) -> List[Dict]:
         """
-        使用 OpenAlex 指标对论文排序
-        Rank papers using OpenAlex journal metrics
+        使用 OpenAlex 期刊指标对论文进行多因素评分排序。
+
+        该方法实现了智能的论文排序算法，综合考虑期刊的多个影响力指标，
+        优先显示高质量期刊上的论文。使用加权评分系统，可以根据研究需求
+        自定义各指标的权重。
+
+        评分算法组合：
+            - cited_by_percentile (50%): 论文引用百分位，归一化到 0-100 范围
+            - h_index (30%): 期刊 h 指数，衡量期刊的整体学术影响力
+            - impact_factor (20%): 期刊影响因子，传统期刊质量指标
 
         Args:
-            papers: List of paper metadata dictionaries
+            papers: 论文元数据列表。每个字典必须包含以下至少一个字段：
+                - 'arxiv_id': arXiv ID (如 "2301.12345")
+                - 'chinaxiv_id': ChinaXiv ID
+                - 'doi': DOI 标识符
+                - 'title': 论文标题
 
-        Returns:
-            Sorted list of papers with openalex_score field added
+            Returns:
+            List[Dict]: 排序后的论文列表，每篇论文包含新增字段：
+                - 'openalex_score': float (0-100) 综合评分
+                - 'openalex_metrics': dict 源指标数据
+                - 'journal_info': dict 期刊信息
+
+        Raises:
+            ImportError: 如果 openalex_ranking 未启用
+            OpenAlexError: OpenAlex API 调用失败
+            ValueError: 如果 papers 列表为空
+
+        Example:
+            >>> collector = ArxivZoteroCollector(...)
+            >>> papers = [{"arxiv_id": "2301.12345", "doi": "10.1234/test"}]
+            >>> ranked = collector.rank_papers_with_openalex(papers)
+            >>> top_paper = ranked[0]
+            >>> top_paper['openalex_score']
+            87.3
+            >>> 'openalex_metrics' in top_paper
+            True
+
+        Complexity:
+            Time: O(n * m) - n=papers, m=metrics per paper
+            Space: O(n) - for results
+            API Calls: 1 batch call (preload_journal_metrics)
+
+        Note:
+            - 该方法依赖于 enable_openalex_ranking=True
+            - 如果未启用 OpenAlex 排序，将直接返回原始论文列表
+            - 期刊指标从本地缓存加载，首次使用会自动预加载
+            - 该方法不会修改原始 papers 列表，而是创建新列表并添加评分
         """
         if not self.enable_openalex_ranking or not papers:
             return papers

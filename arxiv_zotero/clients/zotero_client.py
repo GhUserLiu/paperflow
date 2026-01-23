@@ -1,6 +1,7 @@
 import logging
 import time
 from collections import deque
+from functools import lru_cache
 from pathlib import Path
 from typing import Dict, Optional
 
@@ -43,6 +44,11 @@ class ZoteroClient:
         self._arxiv_id_cache: Dict[str, str] = {}  # {arxiv_id: item_key}
         self._cache_timestamp: Optional[float] = None
         self._cache_ttl = 300  # 缓存有效期 5 分钟
+
+        # 通用查找缓存 (TTL 缓存) - 缓存最近 1000 次查重结果
+        self._lookup_cache: Dict[str, Optional[str]] = {}
+        self._lookup_cache_hits = 0
+        self._lookup_cache_misses = 0
 
         # API 请求统计
         self._request_count = 0
@@ -339,11 +345,35 @@ class ZoteroClient:
                     )
                 return item_key
 
-            # 其他字段仍使用原方法
-            logger.debug(f"缓存未命中或非 archiveLocation 字段,使用 API 查询")
+            # 其他字段使用通用缓存优化
+            cache_key = f"{identifier_field}:{identifier}"
+            if cache_key in self._lookup_cache:
+                # 缓存命中
+                self._lookup_cache_hits += 1
+                cached_result = self._lookup_cache[cache_key]
+                if cached_result:
+                    logger.info(
+                        f"从通用缓存找到重复 {identifier_field} '{identifier}' → item {cached_result}"
+                    )
+                else:
+                    logger.debug(
+                        f"通用缓存确认 {identifier_field} '{identifier}' 不存在 (cache miss)"
+                    )
+                return cached_result
+
+            # 缓存未命中，查询 API
+            self._lookup_cache_misses += 1
+            logger.debug(f"通用缓存未命中 ({self._lookup_cache_hits} hits, {self._lookup_cache_misses} misses)")
             self._rate_limit()
             results = self.zot.items(sort="dateAdded", direction="desc", limit=500)
             self._track_request()
+
+            # 更新缓存（限制缓存大小）
+            if len(self._lookup_cache) >= 1000:
+                # 缓存太大，清除最旧的 20%
+                keys_to_remove = list(self._lookup_cache.keys())[:200]
+                for key in keys_to_remove:
+                    del self._lookup_cache[key]
 
             if results:
                 for item in results:
