@@ -80,8 +80,8 @@ class TestConfigLoader:
         with pytest.raises(ConfigError):
             ConfigLoader.load_zotero_config()
 
-    def test_load_zotero_config_missing_collection_key(self, monkeypatch):
-        """测试缺少 COLLECTION_KEY"""
+    def test_load_zotero_config_with_optional_collection_key(self, monkeypatch):
+        """测试 TEMP_COLLECTION_KEY 为可选（不提供也能成功）"""
         # 使用 mock 直接控制 os.getenv
         original_getenv = os.getenv
 
@@ -96,9 +96,13 @@ class TestConfigLoader:
 
         monkeypatch.setattr(os, "getenv", mock_getenv)
 
-        # 验证抛出 ConfigError
-        with pytest.raises(ConfigError):
-            ConfigLoader.load_zotero_config()
+        # 验证可以成功加载（不抛出 ConfigError）
+        config = ConfigLoader.load_zotero_config()
+
+        assert config["library_id"] == "test_library_id"
+        assert config["api_key"] == "test_api_key"
+        assert config["collection_key"] is None  # 可选，允许为 None
+        assert config["enable_chinaxiv"] is False
 
     def test_load_zotero_config_missing_all_required(self, monkeypatch):
         """测试缺少所有必需配置"""
@@ -152,4 +156,5 @@ class TestConfigLoader:
 
         assert is_complete is False
         assert "ZOTERO_API_KEY" in missing
-        assert "TEMP_COLLECTION_KEY" in missing
+        # TEMP_COLLECTION_KEY 不再是必需的，所以不应该在缺失列表中
+        assert "TEMP_COLLECTION_KEY" not in missing
