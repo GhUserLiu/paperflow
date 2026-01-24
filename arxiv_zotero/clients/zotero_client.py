@@ -3,7 +3,7 @@ import time
 from collections import deque
 from functools import lru_cache
 from pathlib import Path
-from typing import Dict, Optional, Any
+from typing import Any, Dict, Optional
 
 import requests
 from pyzotero import zotero

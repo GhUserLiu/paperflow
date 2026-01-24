@@ -2,10 +2,11 @@
 
 import asyncio
 import time
-from typing import List, Dict
+from typing import Dict, List
+
 import pytest
 
-from arxiv_zotero import ArxivZoteroCollector, ArxivSearchParams
+from arxiv_zotero import ArxivSearchParams, ArxivZoteroCollector
 
 
 class TestPerformance:
@@ -249,8 +250,9 @@ class MemoryProfiler:
             profiler.profile_memory_usage()
         """
         try:
-            import psutil
             import os
+
+            import psutil
 
             process = psutil.Process(os.getpid())
             mem_info = process.memory_info()
@@ -271,8 +273,9 @@ class MemoryProfiler:
         Useful for detecting memory leaks
         """
         try:
-            import psutil
             import os
+
+            import psutil
 
             process = psutil.Process(os.getpid())
             baseline = process.memory_info().rss

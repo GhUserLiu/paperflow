@@ -49,7 +49,9 @@
       "Bash(black:*)",
       "Bash(pip show:*)",
       "Bash(mypy:*)",
-      "Bash(git -c http.proxy= push origin main)"
+      "Bash(git -c http.proxy= push origin main)",
+      "Bash(git -c http.proxy= -c https.proxy= push origin main)",
+      "Bash(isort:*)"
     ]
   }
 }

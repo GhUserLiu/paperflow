@@ -4,10 +4,10 @@ from typing import Dict, Optional, Tuple
 
 from ..clients.zotero_client import ZoteroAPIError
 from ..utils.errors import (
-    PaperDownloadError,
-    ZoteroUploadError,
     DuplicatePaperError,
+    PaperDownloadError,
     ZoteroConnectorError,
+    ZoteroUploadError,
 )
 
 logger = logging.getLogger(__name__)

@@ -2,7 +2,8 @@
 
 import functools
 import logging
-from typing import Callable, Type, Tuple, Any, Optional
+from typing import Any, Callable, Optional, Tuple, Type
+
 from .errors import ZoteroConnectorError
 
 logger = logging.getLogger(__name__)

@@ -1,11 +1,12 @@
 """Test CLI module"""
 
+import asyncio
 import os
 import sys
 from pathlib import Path
-from unittest.mock import Mock, patch, AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
+
 import pytest
-import asyncio
 
 # Add project root to path for imports
 project_root = Path(__file__).parent.parent.parent
