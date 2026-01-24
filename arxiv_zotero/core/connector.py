@@ -317,8 +317,19 @@ class ArxivZoteroCollector:
                     all_papers.extend(arxiv_papers)
                     logger.info(f"  arXiv keyword '{keyword}': {len(arxiv_papers)} papers")
 
-                # Limit total arXiv results
-                all_papers = all_papers[:arxiv_max_results]
+                # Check if we need to rank papers (dynamic OpenAlex ranking)
+                if len(all_papers) > arxiv_max_results:
+                    logger.info(
+                        f"arXiv returned {len(all_papers)} papers, "
+                        f"exceeding limit of {arxiv_max_results}. "
+                        "Applying OpenAlex ranking..."
+                    )
+                    all_papers = self.rank_papers_with_openalex(all_papers)
+                    all_papers = all_papers[:arxiv_max_results]
+                    logger.info(f"Top {len(all_papers)} papers selected after ranking")
+                else:
+                    # Limit total arXiv results
+                    all_papers = all_papers[:arxiv_max_results]
                 logger.info(f"Total from arXiv (limited to {arxiv_max_results}): {len(all_papers)}")
 
             # Search ChinaXiv with Chinese keywords
@@ -340,6 +351,17 @@ class ArxivZoteroCollector:
                     papers = self.search_chinaxiv(search_params)
                     chinaxiv_results.extend(papers)
                     logger.info(f"  ChinaXiv keyword '{keyword}': {len(papers)} papers")
+
+                # Check if we need to rank papers (dynamic OpenAlex ranking)
+                if len(chinaxiv_results) > chinaxiv_max_results:
+                    logger.info(
+                        f"ChinaXiv returned {len(chinaxiv_results)} papers, "
+                        f"exceeding limit of {chinaxiv_max_results}. "
+                        "Applying OpenAlex ranking..."
+                    )
+                    chinaxiv_results = self.rank_papers_with_openalex(chinaxiv_results)
+                    chinaxiv_results = chinaxiv_results[:chinaxiv_max_results]
+                    logger.info(f"Top {len(chinaxiv_results)} papers selected after ranking")
 
                 # Limit total ChinaXiv results
                 chinaxiv_results = chinaxiv_results[:chinaxiv_max_results]

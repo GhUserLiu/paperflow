@@ -11,6 +11,7 @@ from typing import Dict
 
 from arxiv_zotero import ArxivSearchParams, ArxivZoteroCollector
 from arxiv_zotero.utils import ConfigLoader, get_global_monitor
+from arxiv_zotero.utils.collection_logger import CollectionLogger
 from arxiv_zotero.utils.errors import ConfigError
 
 # Fix Windows encoding issue
@@ -222,96 +223,127 @@ async def main():
     Main function to collect papers for all categories
     主函数，采集所有类别的论文
     """
-    print("\n" + "=" * 60)
-    print("ArXiv论文自动采集系统")
-    print("Auto Paper Collection System")
-    print("=" * 60)
-    print(f"开始时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"采集类别数: {len(QUERY_MAP)}")
+    # Initialize logger
+    ZOTERO_LIBRARY_ID, ZOTERO_API_KEY, _ = load_config()
+    collector = ArxivZoteroCollector(
+        zotero_library_id=ZOTERO_LIBRARY_ID,
+        zotero_api_key=ZOTERO_API_KEY,
+        collection_key=CollectionLogger.LOG_COLLECTION_KEY,  # Use log collection
+    )
+    logger = CollectionLogger(collector.zotero_client)
+    logger.start_timer()
 
-    # Display mode
-    if USE_BILINGUAL_CONFIG:
-        print(f"采集模式: 双语模式 (Bilingual)")
-        print(f"  - arXiv: 英文关键词 (每类上限25篇)")
-        print(f"  - ChinaXiv: 中文关键词 (每类上限25篇)")
-        print(f"  - 总计上限: 每类50篇")
-    else:
-        print(f"采集模式: 标准模式 (Standard)")
-        print(f"  - 数据源: arXiv" + (", ChinaXiv" if ENABLE_CHINAXIV else ""))
-        print(f"  - 每类最多论文数: {MAX_RESULTS_PER_CATEGORY}")
+    try:
+        print("\n" + "=" * 60)
+        print("ArXiv论文自动采集系统")
+        print("Auto Paper Collection System")
+        print("=" * 60)
+        print(f"开始时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"采集类别数: {len(QUERY_MAP)}")
 
-    print(f"时间范围: 过去 {TIME_FILTER_HOURS} 小时")
-    print(f"查重功能: 已启用（基于论文ID全局去重）")
-
-    # Statistics
-    total_successful = 0
-    total_failed = 0
-    results = {}
-
-    # Collect papers for each category
-    # 为每个类别采集论文
-    for category, query in QUERY_MAP.items():
-        collection_key = COLLECTION_MAP.get(category)
-
-        if not collection_key:
-            print(f"\n[WARNING] {category} has no collection key configured, skipping")
-            continue
-
-        # Choose collection method based on mode
-        # 根据模式选择采集方法
+        # Display mode
         if USE_BILINGUAL_CONFIG:
-            # Use bilingual config with different keywords for each source
-            # 使用双语配置，为不同来源使用不同的关键词
-            successful, failed = await collect_papers_for_category_bilingual(
-                category=category, collection_key=collection_key
-            )
+            print(f"采集模式: 双语模式 (Bilingual)")
+            print(f"  - arXiv: 英文关键词 (每类上限25篇)")
+            print(f"  - ChinaXiv: 中文关键词 (每类上限25篇)")
+            print(f"  - 总计上限: 每类50篇")
         else:
-            # Use standard mode (single query for all sources)
-            # 使用标准模式（所有来源使用单一查询）
-            successful, failed = await collect_papers_for_category(
-                category=category, query=query, collection_key=collection_key
-            )
+            print(f"采集模式: 标准模式 (Standard)")
+            print(f"  - 数据源: arXiv" + (", ChinaXiv" if ENABLE_CHINAXIV else ""))
+            print(f"  - 每类最多论文数: {MAX_RESULTS_PER_CATEGORY}")
 
-        results[category] = {
-            "successful": successful,
-            "failed": failed,
-            "collection_key": collection_key,
-        }
+        print(f"时间范围: 过去 {TIME_FILTER_HOURS} 小时")
+        print(f"查重功能: 已启用（基于论文ID全局去重）")
 
-        total_successful += successful
-        total_failed += failed
+        # Statistics
+        total_successful = 0
+        total_failed = 0
+        results = {}
 
-        # Small delay between categories to be respectful to APIs
-        # 类别之间稍作延迟，避免对API造成压力
-        if category != list(QUERY_MAP.keys())[-1]:
-            print("\n等待3秒后继续下一类别...")
-            await asyncio.sleep(3)
+        # Collect papers for each category
+        # 为每个类别采集论文
+        for category, query in QUERY_MAP.items():
+            collection_key = COLLECTION_MAP.get(category)
 
-    # Print summary
-    # 打印总结
-    print("\n" + "=" * 60)
-    print("采集完成！Collection Summary")
-    print("=" * 60)
-    print(f"结束时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"\n总计:")
-    print(f"  成功采集: {total_successful} 篇")
-    print(f"  失败: {total_failed} 篇")
+            if not collection_key:
+                print(f"\n[WARNING] {category} has no collection key configured, skipping")
+                continue
 
-    print(f"\n分类详情:")
-    for category, stats in results.items():
-        print(f"\n  {category.upper()}:")
-        print(f"    集合KEY: {stats['collection_key']}")
-        print(f"    成功: {stats['successful']} 篇")
-        print(f"    失败: {stats['failed']} 篇")
+            # Choose collection method based on mode
+            # 根据模式选择采集方法
+            if USE_BILINGUAL_CONFIG:
+                # Use bilingual config with different keywords for each source
+                # 使用双语配置，为不同来源使用不同的关键词
+                successful, failed = await collect_papers_for_category_bilingual(
+                    category=category, collection_key=collection_key
+                )
+            else:
+                # Use standard mode (single query for all sources)
+                # 使用标准模式（所有来源使用单一查询）
+                successful, failed = await collect_papers_for_category(
+                    category=category, query=query, collection_key=collection_key
+                )
 
-    print("\n" + "=" * 60)
+            results[category] = {
+                "successful": successful,
+                "failed": failed,
+                "collection_key": collection_key,
+            }
 
-    # 生成性能报告（如果性能监控已启用）
-    # Generate performance report (if monitoring is enabled)
-    monitor = get_global_monitor()
-    if monitor.stats:
-        print("\n")
-        monitor.print_report(sort_by="total_time")
+            total_successful += successful
+            total_failed += failed
+
+            # Small delay between categories to be respectful to APIs
+            # 类别之间稍作延迟，避免对API造成压力
+            if category != list(QUERY_MAP.keys())[-1]:
+                print("\n等待3秒后继续下一类别...")
+                await asyncio.sleep(3)
+
+        # Print summary
+        # 打印总结
+        print("\n" + "=" * 60)
+        print("采集完成！Collection Summary")
+        print("=" * 60)
+        print(f"结束时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"\n总计:")
+        print(f"  成功采集: {total_successful} 篇")
+        print(f"  失败: {total_failed} 篇")
+
+        print(f"\n分类详情:")
+        for category, stats in results.items():
+            print(f"\n  {category.upper()}:")
+            print(f"    集合KEY: {stats['collection_key']}")
+            print(f"    成功: {stats['successful']} 篇")
+            print(f"    失败: {stats['failed']} 篇")
+
+        print("\n" + "=" * 60)
+
+        # 生成性能报告（如果性能监控已启用）
+        # Generate performance report (if monitoring is enabled)
+        monitor = get_global_monitor()
+        if monitor.stats:
+            print("\n")
+            monitor.print_report(sort_by="total_time")
+
+        # Generate and upload log
+        print("\n生成日志文件...")
+        log_content = logger.generate_auto_log(
+            category_results=results,
+            time_filter_hours=TIME_FILTER_HOURS,
+            is_bilingual=USE_BILINGUAL_CONFIG,
+        )
+        log_filename = logger.generate_filename(mode="auto")
+
+        if await logger.upload_to_zotero(log_content, log_filename):
+            print(f"✓ 日志已上传到 Zotero: {log_filename}")
+        else:
+            print(f"✗ 日志上传失败: {log_filename}")
+
+        print("\n采集系统运行完成！")
+
+    finally:
+        # Close collector
+        await collector.close()
 
 
 if __name__ == "__main__":

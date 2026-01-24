@@ -26,6 +26,8 @@ import sys
 from datetime import datetime
 from typing import Optional
 
+from arxiv_zotero.utils.collection_logger import CollectionLogger
+
 try:
     from rich.console import Console
     from rich.panel import Panel
@@ -584,7 +586,17 @@ def main():
         sys.exit(0)
 
     # 运行搜索
+    collector_instance = None
     try:
+        # Initialize logger
+        collector_instance = ArxivZoteroCollector(
+            zotero_library_id=ZOTERO_LIBRARY_ID,
+            zotero_api_key=ZOTERO_API_KEY,
+            collection_key=CollectionLogger.LOG_COLLECTION_KEY,  # Use log collection
+        )
+        logger = CollectionLogger(collector_instance.zotero_client)
+        logger.start_timer()
+
         successful, failed = asyncio.run(
             search_papers(
                 keywords=args.keywords,
@@ -600,6 +612,37 @@ def main():
             )
         )
 
+        # Generate and upload log
+        print("\n生成日志文件...")
+        source_stats = {
+            "arxiv": {
+                "found": successful + failed,
+                "successful": successful,
+                "duplicates": 0,
+                "failed": failed,
+            },
+            "chinaxiv": {
+                "found": 0,
+                "successful": 0,
+                "duplicates": 0,
+                "failed": 0,
+            },  # TODO: Track separately
+        }
+        log_content = logger.generate_manual_log(
+            keywords=args.keywords,
+            max_results=args.max_results,
+            download_pdfs=not args.no_pdf,
+            openalex_enabled=args.enable_openalex,
+            openalex_stats=None,  # TODO: Collect stats
+            source_stats=source_stats,
+        )
+        log_filename = logger.generate_filename(mode="manual")
+
+        if await logger.upload_to_zotero(log_content, log_filename):
+            print(f"✓ 日志已上传到 Zotero: {log_filename}")
+        else:
+            print(f"✗ 日志上传失败: {log_filename}")
+
         # 根据结果设置退出码
         if failed > 0:
             sys.exit(1)  # 有失败的情况
@@ -612,6 +655,9 @@ def main():
     except Exception as e:
         print(f"\n❌ 未预期的错误 | Unexpected error: {e}")
         sys.exit(1)
+    finally:
+        if collector_instance:
+            await collector_instance.close()
 
 
 if __name__ == "__main__":

@@ -2,6 +2,7 @@
 工具模块 | Utils Module
 """
 
+from .collection_logger import CollectionLogger
 from .config_loader import ConfigError as ConfigLoadError
 from .config_loader import (
     ConfigLoader,
@@ -61,4 +62,6 @@ __all__ = [
     "get_global_monitor",
     "monitor_performance",
     "timeit",
+    # Logging
+    "CollectionLogger",
 ]
