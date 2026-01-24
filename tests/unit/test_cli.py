@@ -30,7 +30,7 @@ class TestCLI:
         # Should exit with error code
         assert exc_info.value.code != 0
 
-    @patch("arxiv_zotero.cli.asyncio.run")
+    @patch("paperflow.cli.asyncio.run")
     def test_main_with_search_mode(self, mock_run, monkeypatch):
         """Test CLI in search mode"""
         # Set required environment variables
@@ -52,7 +52,7 @@ class TestCLI:
         assert exc_info.value.code == 0
         assert mock_run.called
 
-    @patch("arxiv_zotero.cli.asyncio.run")
+    @patch("paperflow.cli.asyncio.run")
     def test_main_auto_collection(self, mock_run, monkeypatch):
         """Test auto collection mode"""
         monkeypatch.setenv("ZOTERO_LIBRARY_ID", "test_lib")

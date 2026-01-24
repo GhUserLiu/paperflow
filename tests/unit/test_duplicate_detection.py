@@ -66,7 +66,7 @@ async def test_duplicate_detection():
     print("[FIRST RUN] - Adding papers to Zotero...")
     print("-" * 70)
 
-    successful_1, failed_1 = await collector.run_collection_async(
+    successful_1, failed_1 = await collector.run_manual_collection_async(
         search_params=search_params, download_pdfs=False  # Skip PDFs for faster testing
     )
 
@@ -80,7 +80,7 @@ async def test_duplicate_detection():
     print("[SECOND RUN] - Checking for duplicates...")
     print("-" * 70)
 
-    successful_2, failed_2 = await collector.run_collection_async(
+    successful_2, failed_2 = await collector.run_manual_collection_async(
         search_params=search_params, download_pdfs=False
     )
 

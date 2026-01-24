@@ -25,7 +25,7 @@ class TestArxivClient:
         assert client.client.delay_seconds == 3
         assert client.client.num_retries == 5
 
-    @patch("arxiv_zotero.clients.arxiv_client.arxiv.Client")
+    @patch("paperflow.clients.arxiv_client.arxiv.Client")
     def test_search_arxiv_success(self, mock_client_class):
         """测试成功搜索"""
         # 模拟 arxiv.Result 对象
@@ -206,7 +206,7 @@ class TestArxivClient:
         # 应该返回 None 而不是抛出异常
         assert metadata is None
 
-    @patch("arxiv_zotero.clients.arxiv_client.arxiv.Client")
+    @patch("paperflow.clients.arxiv_client.arxiv.Client")
     def test_search_arxiv_empty_results(self, mock_client_class):
         """测试空结果"""
         # 模拟空结果
@@ -223,7 +223,7 @@ class TestArxivClient:
 
         assert len(results) == 0
 
-    @patch("arxiv_zotero.clients.arxiv_client.arxiv.Client")
+    @patch("paperflow.clients.arxiv_client.arxiv.Client")
     def test_search_arxiv_with_date_filter(self, mock_client_class):
         """测试带日期过滤的搜索"""
         mock_result = Mock()
