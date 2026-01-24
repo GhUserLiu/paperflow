@@ -81,7 +81,7 @@ COLLECTION_MAP: Dict[str, str] = {
 # 从环境变量读取（已移除硬编码凭证以提高安全性）
 ZOTERO_LIBRARY_ID, ZOTERO_API_KEY, ENABLE_CHINAXIV = load_config()
 
-MAX_RESULTS_PER_CATEGORY = 10  # 每个类别最多获取论文数
+MAX_RESULTS_PER_CATEGORY = 15  # 每个类别最多获取论文数 (自动模式)
 
 # Time filter: only collect papers from the last N hours
 # 时间过滤:只收集过去 N 小时内的论文
@@ -123,6 +123,7 @@ async def collect_papers_for_category_bilingual(
             zotero_api_key=ZOTERO_API_KEY,
             collection_key=collection_key,
             enable_chinaxiv=True,  # Always enable for bilingual mode
+            enable_openalex_ranking=False,  # 自动模式不启用排序
         )
 
         # Calculate time filter (past N hours)
@@ -182,6 +183,7 @@ async def collect_papers_for_category(
             zotero_api_key=ZOTERO_API_KEY,
             collection_key=collection_key,
             enable_chinaxiv=ENABLE_CHINAXIV,
+            enable_openalex_ranking=False,  # 自动模式不启用排序
         )
 
         # Calculate time filter (past N hours)

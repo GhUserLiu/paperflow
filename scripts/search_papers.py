@@ -422,7 +422,12 @@ def main():
     )
 
     parser.add_argument(
-        "--max-results", "-m", type=int, default=20, metavar="N", help="最大结果数（默认: 20）"
+        "--max-results",
+        "-m",
+        type=int,
+        default=50,
+        metavar="N",
+        help="最大结果数（默认: 50，手动模式）",
     )
 
     parser.add_argument("--no-pdf", "-n", action="store_true", help="不下载 PDF 文件")
@@ -446,7 +451,13 @@ def main():
         "--enable-openalex",
         "-e",
         action="store_true",
-        help="启用 OpenAlex 期刊指标排序（按被引百分位、h指数、影响因子综合评分）",
+        help="启用 OpenAlex 期刊指标排序（手动模式推荐，默认启用）",
+    )
+
+    parser.add_argument(
+        "--no-openalex",
+        action="store_true",
+        help="禁用 OpenAlex 排序（覆盖默认启用）",
     )
 
     parser.add_argument(
@@ -502,6 +513,10 @@ def main():
     # 使用默认 collection_key 如果未指定
     if args.collection is None:
         args.collection = TEMP_COLLECTION_KEY
+
+    # 手动模式默认启用 OpenAlex 排序（除非用户明确禁用）
+    if not args.no_openalex and not args.enable_openalex:
+        args.enable_openalex = True
 
     # 解析 OpenAlex 权重配置
     openalex_weights = None
