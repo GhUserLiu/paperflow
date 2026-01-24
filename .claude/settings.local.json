@@ -54,7 +54,10 @@
       "Bash(isort:*)",
       "Bash(git mv:*)",
       "Bash(git rm:*)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(git remote add:*)",
+      "Bash(git remote remove:*)",
+      "Bash(git remote rename:*)"
     ]
   }
 }
