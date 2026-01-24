@@ -64,7 +64,7 @@ pytest
 pytest -v
 
 # 带覆盖率报告
-pytest --cov=arxiv_zotero --cov-report=html
+pytest --cov=paperflow --cov-report=html
 ```
 
 ### 运行特定测试
@@ -129,8 +129,8 @@ pytest -m "not slow"
 ```python
 # tests/unit/test_clients/test_arxiv_client.py
 import pytest
-from arxiv_zotero.clients.arxiv_client import ArxivClient
-from arxiv_zotero.core.search_params import ArxivSearchParams
+from paperflow.clients.arxiv_client import ArxivClient
+from paperflow.core.search_params import ArxivSearchParams
 
 
 class TestArxivClient:
@@ -163,7 +163,7 @@ class TestArxivClient:
 ```python
 # tests/integration/test_full_workflow.py
 import pytest
-from arxiv_zotero import ArxivZoteroCollector, ArxivSearchParams
+from paperflow import ArxivZoteroCollector, ArxivSearchParams
 
 
 @pytest.mark.integration
@@ -209,7 +209,7 @@ def test_with_fixtures(sample_paper_data, sample_openalex_metrics):
 from unittest.mock import patch, MagicMock
 
 
-@patch('arxiv_zotero.clients.arxiv_client.requests.get')
+@patch('paperflow.clients.arxiv_client.requests.get')
 def test_with_mock(mock_get):
     """使用 mock 的测试"""
     # 配置 mock 响应
@@ -286,7 +286,7 @@ jobs:
           pip install pytest pytest-cov
 
       - name: Run tests
-        run: pytest --cov=arxiv_zotero
+        run: pytest --cov=paperflow
 
       - name: Upload coverage
         uses: codecov/codecov-action@v3

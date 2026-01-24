@@ -9,10 +9,10 @@ import sys
 from datetime import datetime, timedelta
 from typing import Dict
 
-from arxiv_zotero import ArxivSearchParams, ArxivZoteroCollector
-from arxiv_zotero.utils import ConfigLoader, get_global_monitor
-from arxiv_zotero.utils.collection_logger import CollectionLogger
-from arxiv_zotero.utils.errors import ConfigError
+from paperflow import ArxivSearchParams, ArxivZoteroCollector
+from paperflow.utils import ConfigLoader, get_global_monitor
+from paperflow.utils.collection_logger import CollectionLogger
+from paperflow.utils.errors import ConfigError
 
 # Fix Windows encoding issue
 # 修复Windows编码问题

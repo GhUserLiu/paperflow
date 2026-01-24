@@ -6,8 +6,8 @@ import os
 
 import pytest
 
-from arxiv_zotero.utils import ConfigLoader
-from arxiv_zotero.utils.config_loader import ConfigError
+from paperflow.utils import ConfigLoader
+from paperflow.utils.config_loader import ConfigError
 
 
 class TestConfigLoader:

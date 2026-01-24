@@ -18,7 +18,7 @@ from typing import Dict
 
 import pytest
 
-from arxiv_zotero import ArxivSearchParams, ArxivZoteroCollector
+from paperflow import ArxivSearchParams, ArxivZoteroCollector
 
 # Configure logging to see the duplicate detection messages
 logging.basicConfig(

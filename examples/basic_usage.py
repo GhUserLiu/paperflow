@@ -22,7 +22,7 @@
 import asyncio
 import os
 
-from arxiv_zotero import ArxivSearchParams, ArxivZoteroCollector
+from paperflow import ArxivSearchParams, ArxivZoteroCollector
 
 
 async def basic_search_example():

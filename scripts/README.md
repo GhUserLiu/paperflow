@@ -157,7 +157,7 @@ git commit --no-verify -m "message"
 pytest
 
 # 运行测试并生成覆盖率报告
-pytest --cov=arxiv_zotero --cov-report=html
+pytest --cov=paperflow --cov-report=html
 
 # 运行特定测试文件
 pytest tests/unit/test_performance.py
@@ -169,10 +169,10 @@ pytest tests/unit/test_performance.py::TestPerformanceMonitor::test_init
 ### 代码格式化 | Code formatting
 ```bash
 # 格式化代码
-black arxiv_zotero scripts tests
+black paperflow scripts tests
 
 # 排序 imports
-isort arxiv_zotero scripts tests
+isort paperflow scripts tests
 ```
 
 ---

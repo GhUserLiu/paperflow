@@ -23,7 +23,7 @@ import logging
 import sys
 from pathlib import Path
 
-from arxiv_zotero.clients.openalex_client import OpenAlexClient
+from paperflow.clients.openalex_client import OpenAlexClient
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))

@@ -8,8 +8,8 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 import pytz
 
-from arxiv_zotero.clients.arxiv_client import ArxivClient
-from arxiv_zotero.core.search_params import ArxivSearchParams
+from paperflow.clients.arxiv_client import ArxivClient
+from paperflow.core.search_params import ArxivSearchParams
 
 
 class TestArxivClient:

@@ -50,10 +50,10 @@ docs/API_USAGE.md                    # Comprehensive API guide
 tests/test_performance.py             # Performance benchmarks
 config/development.yaml               # Development environment config
 config/production.yaml                # Production environment config
-arxiv_zotero/utils/config_loader_env.py  # Environment config loader
-arxiv_zotero/utils/decorators.py      # Utility decorators
+paperflow/utils/config_loader_env.py  # Environment config loader
+paperflow/utils/decorators.py      # Utility decorators
 tests/unit/test_cli.py                # CLI tests
-arxiv_zotero/config/app_config.py     # Centralized configuration
+paperflow/config/app_config.py     # Centralized configuration
 ```
 
 ### 📊 Impact
@@ -80,7 +80,7 @@ pip install -e ".[ai]"
 Use new utility decorators to simplify code:
 
 ```python
-from arxiv_zotero.utils.decorators import retry_on_failure, measure_time
+from paperflow.utils.decorators import retry_on_failure, measure_time
 
 @retry_on_failure(max_attempts=3)
 @measure_time()

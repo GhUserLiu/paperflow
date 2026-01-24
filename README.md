@@ -1,6 +1,6 @@
-# arxiv-zotero-connector
+# PaperFlow
 
-> 自动化论文采集工具 - 从 arXiv 搜索、下载 PDF 并保存到 Zotero 库
+> 自动化论文采集工具 - 从 arXiv/ChinaXiv 搜索、下载 PDF 并保存到 Zotero 库
 
 [![CI/CD](https://img.shields.io/badge/CI-CD-success-green)](.github/workflows/ci.yml)
 [![Version](https://img.shields.io/badge/version-2.1.0-blue)](CHANGELOG.md)
@@ -21,8 +21,8 @@
 ### 安装
 
 ```bash
-git clone https://github.com/StepanKropachev/arxiv-zotero-connector.git
-cd arxiv-zotero-connector
+git clone https://github.com/GhUserLiu/arxiv-zotero-auto.git
+cd arxiv-zotero-auto
 pip install -e .
 ```
 
@@ -49,6 +49,14 @@ python scripts/run_manual_search.py -k "neural networks" -m 50
 
 # 预览模式
 python scripts/run_manual_search.py -k "quantum" --dry-run
+```
+
+### CLI 命令
+
+```bash
+# 使用 PaperFlow CLI
+paperflow search --keywords "deep learning" --max-results 10
+paperflow auto collect
 ```
 
 ## 📚 文档与示例
@@ -92,14 +100,14 @@ pytest tests/ -v
 pytest tests/test_performance.py --benchmark
 
 # 代码检查
-black arxiv_zotero scripts tests
-mypy arxiv_zotero --ignore-missing-imports
+black paperflow scripts tests
+mypy paperflow --ignore-missing-imports
 ```
 
 ## 📊 项目结构
 
 ```
-arxiv_zotero/
+paperflow/
 ├── clients/       # API 客户端（arXiv, Zotero, OpenAlex）
 ├── config/        # 配置管理
 ├── core/          # 核心逻辑（采集器、处理器）
@@ -112,4 +120,4 @@ MIT License - 详见 [LICENSE](LICENSE)
 
 ---
 
-**版本**: v2.1.0 | **更新**: 2026-01-23 | **状态**: ✅ 活跃维护
+**项目名称**: PaperFlow | **版本**: v2.1.0 | **更新**: 2026-01-24 | **状态**: ✅ 活跃维护

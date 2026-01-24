@@ -4,7 +4,7 @@
 def test_imports():
     """Test that main components can be imported"""
     try:
-        from arxiv_zotero import (
+        from paperflow import (
             ArxivSearchParams,
             ArxivZoteroCollector,
             PaperSummarizer,
@@ -19,7 +19,7 @@ def test_imports():
 
 def test_search_params():
     """Test ArxivSearchParams creation"""
-    from arxiv_zotero import ArxivSearchParams
+    from paperflow import ArxivSearchParams
 
     params = ArxivSearchParams(keywords=["test"], max_results=5)
     assert params.keywords == ["test"]

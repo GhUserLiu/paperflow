@@ -5,17 +5,17 @@ here = pathlib.Path(__file__).parent.resolve()
 long_description = (here / "README.md").read_text(encoding="utf-8")
 
 setup(
-    name="arxiv-zotero-connector",
+    name="paperflow",
     version="2.1.0",
     author="Stepan Kropachev",
     author_email="kropachev.st@gmail.com",
-    description="Automatically collect papers from ArXiv and organize them in your Zotero library",
+    description="Automatically collect papers from arXiv/ChinaXiv and organize them in your Zotero library",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/StepanKropachev/arxiv-zotero-connector",
+    url="https://github.com/GhUserLiu/arxiv-zotero-auto",
     project_urls={
-        "Bug Reports": "https://github.com/StepanKropachev/arxiv-zotero-connector/issues",
-        "Source": "https://github.com/StepanKropachev/arxiv-zotero-connector",
+        "Bug Reports": "https://github.com/GhUserLiu/arxiv-zotero-auto/issues",
+        "Source": "https://github.com/GhUserLiu/arxiv-zotero-auto",
     },
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -29,7 +29,7 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
     ],
-    keywords="arxiv, zotero, research, papers, academic, automation",
+    keywords="arxiv, chinaxiv, zotero, research, papers, academic, automation",
     packages=find_packages(exclude=["tests", "tests.*", "examples", "dev-tools"]),
     python_requires=">=3.7",
     install_requires=[
@@ -44,7 +44,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "arxiv-zotero=arxiv_zotero.cli:main",
+            "paperflow=paperflow.cli:main",
         ],
     },
     include_package_data=True,

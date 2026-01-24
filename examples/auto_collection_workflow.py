@@ -27,7 +27,7 @@
 import asyncio
 from datetime import datetime
 
-from arxiv_zotero import ArxivSearchParams, ArxivZoteroCollector
+from paperflow import ArxivSearchParams, ArxivZoteroCollector
 
 
 async def auto_collection_example():

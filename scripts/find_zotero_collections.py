@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Find Zotero collection keys"""
 
-from arxiv_zotero.clients.zotero_client import ZoteroClient
-from arxiv_zotero.utils.credentials import load_credentials
+from paperflow.clients.zotero_client import ZoteroClient
+from paperflow.utils.credentials import load_credentials
 
 
 def find_collections():

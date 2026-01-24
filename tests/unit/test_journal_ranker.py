@@ -4,7 +4,7 @@ JournalRanker 单元测试 | JournalRanker Unit Tests
 
 import pytest
 
-from arxiv_zotero.utils.journal_ranker import JournalRanker
+from paperflow.utils.journal_ranker import JournalRanker
 
 
 class TestJournalRanker:

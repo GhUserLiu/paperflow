@@ -26,7 +26,7 @@ import sys
 from datetime import datetime
 from typing import Optional
 
-from arxiv_zotero.utils.collection_logger import CollectionLogger
+from paperflow.utils.collection_logger import CollectionLogger
 
 try:
     from rich.console import Console
@@ -43,9 +43,9 @@ if sys.platform == "win32":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
 
-from arxiv_zotero import ArxivSearchParams, ArxivZoteroCollector
-from arxiv_zotero.utils import ConfigLoader
-from arxiv_zotero.utils.errors import ConfigError
+from paperflow import ArxivSearchParams, ArxivZoteroCollector
+from paperflow.utils import ConfigLoader
+from paperflow.utils.errors import ConfigError
 
 
 def validate_keywords(keywords: str) -> str:
@@ -125,7 +125,7 @@ def _estimate_cache_hit_rate(enable_openalex_ranking: bool) -> float:
     Returns:
         估算的缓存命中率 (0.0-1.0)
     """
-    from arxiv_zotero.clients.openalex_client import OpenAlexClient
+    from paperflow.clients.openalex_client import OpenAlexClient
 
     if not enable_openalex_ranking:
         return 0.0
@@ -216,7 +216,7 @@ async def search_papers(
 
         # 自动预热缓存（如果启用 OpenAlex 且缓存为空）
         if enable_openalex_ranking and auto_preload:
-            from arxiv_zotero.clients.openalex_client import OpenAlexClient
+            from paperflow.clients.openalex_client import OpenAlexClient
 
             print("🔄 检查 OpenAlex 缓存状态...")
             openalex_client = OpenAlexClient()

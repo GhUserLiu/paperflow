@@ -31,19 +31,19 @@ jobs:
           pip install -e ".[dev,lint,type]"
 
       - name: Run Black (code formatter check)
-        run: black --check --diff arxiv_zotero scripts tests
+        run: black --check --diff paperflow scripts tests
 
       - name: Run isort (import sorting check)
-        run: isort --check-only --diff arxiv_zotero scripts tests
+        run: isort --check-only --diff paperflow scripts tests
 
       - name: Run Flake8 (style guide enforcement)
-        run: flake8 arxiv_zotero scripts tests --max-line-length=100 --extend-ignore=E203,W503,E501,F401,F541,F821,E722 || true
+        run: flake8 paperflow scripts tests --max-line-length=100 --extend-ignore=E203,W503,E501,F401,F541,F821,E722 || true
 
       - name: Run Pylint (code analysis)
-        run: pylint arxiv_zotero --fail-under=8.0 || true
+        run: pylint paperflow --fail-under=8.0 || true
 
       - name: Run MyPy (type checking)
-        run: mypy arxiv_zotero --ignore-missing-imports || true
+        run: mypy paperflow --ignore-missing-imports || true
 
   # 安全检查 | Security Checks
   security:
@@ -66,7 +66,7 @@ jobs:
           pip install -e ".[lint]"
 
       - name: Run Bandit (security linter)
-        run: bandit -r arxiv_zotero -f json -o bandit-report.json || true
+        run: bandit -r paperflow -f json -o bandit-report.json || true
 
       - name: Upload Bandit report
         uses: actions/upload-artifact@v4
@@ -102,7 +102,7 @@ jobs:
           pip install -e ".[test]"
 
       - name: Run tests with coverage
-        run: pytest tests/ -v --cov=arxiv_zotero --cov-report=xml --cov-report=term-missing --cov-report=html --junitxml=test-results.xml
+        run: pytest tests/ -v --cov=paperflow --cov-report=xml --cov-report=term-missing --cov-report=html --junitxml=test-results.xml
 
       - name: Upload coverage to Codecov
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.10'

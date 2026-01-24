@@ -6,7 +6,7 @@ from typing import Dict, List
 
 import pytest
 
-from arxiv_zotero import ArxivSearchParams, ArxivZoteroCollector
+from paperflow import ArxivSearchParams, ArxivZoteroCollector
 
 
 class TestPerformance:

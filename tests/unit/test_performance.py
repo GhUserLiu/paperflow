@@ -6,7 +6,7 @@ import time
 
 import pytest
 
-from arxiv_zotero.utils.performance import (
+from paperflow.utils.performance import (
     PerformanceMonitor,
     get_global_monitor,
     monitor_performance,
