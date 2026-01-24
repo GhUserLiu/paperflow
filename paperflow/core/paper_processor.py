@@ -99,6 +99,9 @@ class PaperProcessor:
                 )
                 if existing_item_key:
                     dup_type = "collection-only" if self.collection_only_dupcheck else "global"
+                    if existing_item_key == "RUNTIME_DUPLICATE":
+                        dup_type = "current run"  # 本次运行中的重复
+
                     logger.info(
                         f"Paper {paper_id} ({paper_source}) already exists in library ({dup_type}, item: {existing_item_key}), skipping"
                     )

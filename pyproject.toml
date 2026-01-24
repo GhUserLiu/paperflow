@@ -3,9 +3,9 @@ requires = ["setuptools>=45", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "arxiv-zotero-connector"
+name = "paperflow"
 version = "2.1.0"
-description = "Automatically collect papers from ArXiv and organize them in your Zotero library with AI-powered summarization"
+description = "Automated paper collection tool for arXiv/ChinaXiv with Zotero integration"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
@@ -65,7 +65,7 @@ ai = [
 
 # 所有开发依赖（便捷安装）
 all = [
-    "arxiv-zotero-connector[dev,test,lint,type,ai]",
+    "paperflow[dev,test,lint,type,ai]",
 ]
 
 [tool.black]

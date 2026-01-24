@@ -74,6 +74,42 @@ jobs:
           fi
         continue-on-error: true
 
+      - name: Clean old log entries
+        if: always()
+        run: |
+          # 只保留最近 30 条日志记录
+          LOG_FILE="collection_log.md"
+          if [ -f "$LOG_FILE" ]; then
+            # 统计当前记录数
+            RECORD_COUNT=$(grep -c "^## 📚 Paper Collection Log" "$LOG_FILE" || echo "0")
+            echo "当前日志记录数: $RECORD_COUNT"
+
+            if [ "$RECORD_COUNT" -gt 30 ]; then
+              # 备份并保留最近 30 条记录
+              cp "$LOG_FILE" "${LOG_FILE}.backup"
+
+              # 使用 awk 保留最近 30 条记录
+              awk '
+                /^## 📚 Paper Collection Log/ {
+                  count++
+                  if (count > 30) next
+                }
+                { print }
+              ' "$LOG_FILE" > "${LOG_FILE}.tmp" && mv "${LOG_FILE}.tmp" "$LOG_FILE"
+
+              NEW_COUNT=$(grep -c "^## 📚 Paper Collection Log" "$LOG_FILE" || echo "0")
+              echo "✅ 清理完成，保留记录数: $NEW_COUNT"
+
+              # 提交清理后的文件
+              git add "$LOG_FILE"
+              git commit -m "🧹 Clean log: keep last 30 entries (was $RECORD_COUNT, now $NEW_COUNT)"
+              git push
+            else
+              echo "✅ 日志记录数 ($RECORD_COUNT) 未超过阈值 (30)，无需清理"
+            fi
+          fi
+        continue-on-error: true
+
       - name: Upload log as artifact
         if: always()
         uses: actions/upload-artifact@v4

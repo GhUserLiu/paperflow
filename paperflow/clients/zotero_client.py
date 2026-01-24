@@ -63,6 +63,11 @@ class ZoteroClient:
         self._lookup_cache_hits = 0
         self._lookup_cache_misses = 0
 
+        # 本次运行已创建的论文集合 (防止并发重复)
+        # Format: {field_value: identifier_field}
+        # Example: {"2301.12345": "archiveLocation", "chinaxiv123": "extra"}
+        self._created_papers: Dict[str, str] = {}
+
         # API 请求统计
         self._request_count = 0
         self._start_time = time.time()
@@ -216,6 +221,33 @@ class ZoteroClient:
             if "successful" in response and response["successful"]:
                 item_key = list(response["successful"].values())[0]["key"]
                 logger.info(f"Successfully created item with key: {item_key}")
+
+                # ========== 新增: 记录到本次运行已创建集合 ==========
+                # 防止并发场景下的重复创建
+                # 检查并记录 arXiv ID (archiveLocation 字段)
+                arxiv_id = metadata.get("archiveLocation", "").strip()
+                if arxiv_id:
+                    self._created_papers[arxiv_id] = "archiveLocation"
+                    logger.debug(f"记录 arXiv ID 到本次运行集合: {arxiv_id}")
+
+                # 检查并记录 ChinaXiv ID (extra 字段)
+                extra = metadata.get("extra", "")
+                if extra and "ChinaXiv ID:" in extra:
+                    # 提取 ChinaXiv ID (格式: "ChinaXiv ID: XXXXXXX")
+                    for line in extra.split("\n"):
+                        if "ChinaXiv ID:" in line:
+                            chinaxiv_id = line.split("ChinaXiv ID:")[1].strip()
+                            if chinaxiv_id:
+                                self._created_papers[chinaxiv_id] = "extra"
+                                logger.debug(f"记录 ChinaXiv ID 到本次运行集合: {chinaxiv_id}")
+                                break
+
+                # 检查并记录 DOI
+                doi = metadata.get("DOI", "").strip()
+                if doi:
+                    self._created_papers[doi] = "DOI"
+                    logger.debug(f"记录 DOI 到本次运行集合: {doi}")
+
                 return item_key
             else:
                 logger.error(
@@ -337,8 +369,20 @@ class ZoteroClient:
             - 后续调用: 从缓存查找 (0 次 API 请求)
             - 缓存有效期: 5 分钟
             - collection_only: 集合内查重更快 (约0.5-1秒 vs 2-3秒)
+            - 本次运行: 优先检查本次运行已创建的论文 (防止并发重复)
         """
         try:
+            # ========== 新增: 优先检查本次运行已创建的论文 ==========
+            # 这对并发场景特别重要，可以防止同一批次中的重复
+            identifier_clean = str(identifier).strip()
+            if identifier_clean in self._created_papers:
+                logger.info(
+                    f"从本次运行找到重复 {identifier_field} '{identifier}' "
+                    f"(已在本次运行中创建)"
+                )
+                # 返回一个特殊标记，表示"本次运行中已创建"
+                return "RUNTIME_DUPLICATE"
+
             # 集合内查重模式
             if collection_only and self.collection_key:
                 logger.debug(f"使用集合内查重模式 (collection: {self.collection_key})")

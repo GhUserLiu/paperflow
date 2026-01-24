@@ -1,198 +1,51 @@
-# 开发者工具脚本 | Developer Tools Scripts
+# Scripts - 工具脚本
 
-本目录包含用于项目开发和维护的实用脚本。
-This directory contains utility scripts for project development and maintenance.
+PaperFlow 项目工具脚本目录。
 
----
+## 📋 脚本列表
 
-## 📋 脚本列表 | Script List
+### 自动采集
+- **`run_auto_collection.py`** - 自动采集论文（GitHub Actions 定时任务使用）
 
-### 1. setup_dev.sh / setup_dev.bat
-**用途**: 一键配置开发环境 | **Purpose**: One-command development environment setup
+### 手动搜索
+- **`run_manual_search.py`** - 手动搜索并保存论文
 
-**功能 | Features**:
-- ✅ 检查 Python 版本 | Check Python version
-- ✅ 安装所有开发依赖 | Install all development dependencies
-- ✅ 配置 pre-commit git hooks | Configure pre-commit git hooks
-- ✅ 可选: 启用 pre-push hooks | Optional: Enable pre-push hooks
-- ✅ 可选: 首次对所有文件运行检查 | Optional: Run checks on all files
-
-**使用方法 | Usage**:
-
-Linux/Mac:
-```bash
-bash scripts/setup_dev.sh
-# 或
-chmod +x scripts/setup_dev.sh
-./scripts/setup_dev.sh
-```
-
-Windows:
-```batch
-scripts\setup_dev.bat
-# 或双击运行
-```
-
----
-
-### 2. run_auto_collection.py
-**用途**: 自动收集 ArXiv 论文 | **Purpose**: Automatic ArXiv paper collection
-
-**使用方法 | Usage**:
-```bash
-python scripts/run_auto_collection.py
-```
-
-**环境变量 | Environment Variables**:
-- `ZOTERO_LIBRARY_ID`: Zotero 库 ID
-- `ZOTERO_API_KEY`: Zotero API 密钥
-
----
-
-### 3. git-proxy-push.sh / git-proxy-push.bat
-**用途**: 智能推送（失败时自动使用代理）| **Purpose**: Smart push with auto-proxy fallback
-
-**功能 | Features**:
-- ✅ 首先尝试直接推送 | Try direct push first
-- ✅ 失败时自动使用代理重试 | Auto-retry with proxy on failure
-- ✅ 代理端口: 7897（可修改）| Proxy port: 7897 (configurable)
-
-**使用方法 | Usage**:
-
-Linux/Mac:
-```bash
-bash scripts/git-proxy-push.sh
-```
-
-Windows:
-```batch
-scripts\git-proxy-push.bat
-```
-
-**配置代理端口 | Configure Proxy Port**:
-编辑脚本中的 `PROXY_PORT` 变量（默认 7897）
-
----
-
-### 4. run_manual_search.py
-
-**用途**: 手动搜索 ArXiv 论文 | **Purpose**: Manual search for ArXiv papers
-
-**使用方法 | Usage**:
+### 日志管理
+- **`clean_logs.sh` / `clean_logs.bat`** - 清理日志文件（保留最近 N 条记录）
 
 ```bash
-python scripts/run_manual_search.py --keywords "deep learning"
+# 使用清理脚本
+bash scripts/clean_logs.sh      # Linux/Mac: 保留最近 30 条
+scripts\clean_logs.bat          # Windows: 保留最近 30 条
+bash scripts/clean_logs.sh 50   # 自定义保留数量
 ```
-
-**常用参数 | Common Arguments**:
-
-- `--keywords, -k`: 搜索关键词
-- `--max-results, -m`: 最大结果数（默认50）
-- `--enable-openalex, -e`: 启用OpenAlex排序
-- `--chinaxiv, -x`: 启用ChinaXiv搜索
-- `--dry-run`: 预览模式，不保存到Zotero
-
----
-
-## 🔧 Pre-commit Hooks
-
-项目配置了以下 pre-commit hooks:
-The project is configured with the following pre-commit hooks:
-
-| Hook | 功能 | Purpose |
-|------|------|---------|
-| Black | 代码格式化 | Code formatting |
-| isort | Import 排序 | Import sorting |
-| Flake8 | 代码风格检查 | Style guide enforcement |
-| MyPy | 类型检查 | Type checking |
-| Bandit | 安全检查 | Security linting |
-| trailing-whitespace | 移除尾随空白 | Remove trailing whitespace |
-| end-of-file-fixer | 确保文件以换行符结尾 | Ensure files end with newline |
-| check-yaml/json/toml | 配置文件语法检查 | Config file syntax check |
-
----
-
-## 📦 依赖安装选项
-
-### 安装核心依赖 | Core dependencies only
-```bash
-pip install -e .
-```
-
-### 安装开发依赖 | Development dependencies
-```bash
-pip install -e ".[dev]"
-```
-
-### 安装测试依赖 | Testing dependencies
-```bash
-pip install -e ".[test]"
-```
-
-### 安装所有依赖 | All dependencies
-```bash
-pip install -e ".[all]"
-```
-
----
-
-## 🛠️ 常用开发命令
-
-### 代码质量检查 | Code quality checks
-```bash
-# 手动运行所有 pre-commit hooks
-pre-commit run --all-files
-
-# 运行特定 hook
-pre-commit run black --all-files
-pre-commit run flake8 --all-files
-
-# 跳过 hooks (紧急情况)
-git commit --no-verify -m "message"
-```
-
-### 测试 | Testing
-```bash
-# 运行所有测试
-pytest
-
-# 运行测试并生成覆盖率报告
-pytest --cov=paperflow --cov-report=html
-
-# 运行特定测试文件
-pytest tests/unit/test_performance.py
-
-# 运行特定测试函数
-pytest tests/unit/test_performance.py::TestPerformanceMonitor::test_init
-```
-
-### 代码格式化 | Code formatting
-```bash
-# 格式化代码
-black paperflow scripts tests
-
-# 排序 imports
-isort paperflow scripts tests
-```
-
----
-
-## 🔄 更新 Pre-commit Hooks
-
-定期更新 pre-commit hooks 以获得最新版本:
-Update pre-commit hooks regularly to get the latest versions:
 
 ```bash
-pre-commit autoupdate
-git add .pre-commit-config.yaml
-git commit -m "Update pre-commit hooks"
+# 基本用法
+python scripts/run_manual_search.py -k "deep learning"
+
+# 启用期刊排序
+python scripts/run_manual_search.py -k "computer vision" -e
+
+# 更多结果
+python scripts/run_manual_search.py -k "neural networks" -m 50
+
+# 预览模式
+python scripts/run_manual_search.py -k "quantum" --dry-run
 ```
 
----
+## 🔧 常用参数
+
+| 参数 | 短选项 | 说明 |
+|------|--------|------|
+| `--keywords` | `-k` | 搜索关键词 |
+| `--max-results` | `-m` | 最大结果数（默认50） |
+| `--no-pdf` | `-n` | 不下载 PDF |
+| `--enable-chinaxiv` | `-x` | 启用中文预印本搜索 |
+| `--enable-openalex` | `-e` | 启用期刊影响力排序 |
+| `--dry-run` | | 预览模式，不实际保存 |
 
 ## 📚 相关文档
 
-- [项目结构](../docs/PROJECT_STRUCTURE.md)
-- [架构文档](../docs/ARCHITECTURE.md)
-- [改进记录](../docs/IMPROVEMENTS.md)
 - [主 README](../README.md)
+- [测试文档](../tests/README.md)

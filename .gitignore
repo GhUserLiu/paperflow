@@ -70,6 +70,8 @@ python-virtualenv/
 # Logs
 *.log
 logs/*.log
+arxiv_zotero.log
+paperflow.log
 # Keep the logs directory but ignore log files inside it
 !logs/.gitkeep
 
@@ -128,6 +130,8 @@ test_install/
 dist/
 build/
 *.egg-info/
+paperflow.egg-info/
+arxiv_zotero_connector.egg-info/
 *.egg
 
 # Claude Code settings

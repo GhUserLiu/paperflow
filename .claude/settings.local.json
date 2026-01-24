@@ -57,7 +57,12 @@
       "Bash(xargs:*)",
       "Bash(git remote add:*)",
       "Bash(git remote remove:*)",
-      "Bash(git remote rename:*)"
+      "Bash(git remote rename:*)",
+      "Bash(git worktree:*)",
+      "Bash(git count-objects:*)",
+      "Bash(du:*)",
+      "Bash(for:*)",
+      "Bash(do:*)"
     ]
   }
 }

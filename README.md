@@ -59,45 +59,27 @@ paperflow search --keywords "deep learning" --max-results 10
 paperflow auto collect
 ```
 
-## 📚 文档与示例
+## 🔧 GitHub Secrets 配置
+
+在 **Settings → Secrets and variables → Actions** 中添加：
+
+| Secret | 说明 | 获取方式 |
+|--------|------|---------|
+| `ZOTERO_LIBRARY_ID` | Zotero Library ID | [设置页面](https://www.zotero.org/settings/keys) |
+| `ZOTERO_API_KEY` | Zotero API 密钥 | [设置页面](https://www.zotero.org/settings/keys) |
+| `ENABLE_CHINAXIV` | 是否启用中文预印本 | `true` 或 `false` |
+
+## 📚 文档
 
 - **[更新日志](CHANGELOG.md)** - 版本历史
-- **[代码示例](examples/)** - 完整的使用示例
-- **[脚本说明](scripts/README.md)** - 工具脚本文档
-
-## 💡 高级功能
-
-### OpenAlex 排序
-
-按期刊影响力排序（`cited_by_percentile`, `h_index`, `impact_factor`）：
-
-```bash
-python scripts/run_manual_search.py -k "machine learning" -e
-```
-
-### 双语采集
-
-同时采集 arXiv（英文）和 ChinaXiv（中文）：
-
-```bash
-python scripts/run_manual_search.py -k "人工智能" -x
-```
-
-### 自定义权重
-
-```bash
-python scripts/run_manual_search.py -k "deep learning" -e \
-  -w '{"cited_by_percentile": 0.7, "h_index": 0.2, "impact_factor": 0.1}'
-```
+- **[脚本文档](scripts/README.md)** - 工具脚本说明
+- **[测试文档](tests/README.md)** - 测试指南
 
 ## 🧪 开发
 
 ```bash
 # 测试
 pytest tests/ -v
-
-# 性能测试
-pytest tests/test_performance.py --benchmark
 
 # 代码检查
 black paperflow scripts tests

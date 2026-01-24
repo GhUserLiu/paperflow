@@ -9,7 +9,7 @@ setup(
     version="2.1.0",
     author="Stepan Kropachev",
     author_email="kropachev.st@gmail.com",
-    description="Automatically collect papers from arXiv/ChinaXiv and organize them in your Zotero library",
+    description="Automated paper collection tool for arXiv/ChinaXiv with Zotero integration",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/GhUserLiu/arxiv-zotero-auto",

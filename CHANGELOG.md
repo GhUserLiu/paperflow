@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to arxiv-zotero-connector will be documented in this file.
+All notable changes to PaperFlow will be documented in this file.
 
 ## [2.1.0] - 2026-01-23
 
