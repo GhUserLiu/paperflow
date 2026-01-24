@@ -51,11 +51,11 @@ python scripts/run_manual_search.py -k "neural networks" -m 50
 python scripts/run_manual_search.py -k "quantum" --dry-run
 ```
 
-## 📚 文档
+## 📚 文档与示例
 
-- **[API 使用指南](docs/API_USAGE.md)** - 详细文档和示例
-- **[系统架构](docs/ARCHITECTURE.md)** - 架构设计
 - **[更新日志](CHANGELOG.md)** - 版本历史
+- **[代码示例](examples/)** - 完整的使用示例
+- **[脚本说明](scripts/README.md)** - 工具脚本文档
 
 ## 💡 高级功能
 

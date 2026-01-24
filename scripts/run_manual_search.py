@@ -373,7 +373,7 @@ async def search_papers(
         return 0, 0
 
 
-def main():
+async def main():
     """主函数 - 命令行接口"""
     # 加载配置（移除硬编码密钥）
     ZOTERO_LIBRARY_ID, ZOTERO_API_KEY, TEMP_COLLECTION_KEY, ENABLE_CHINAXIV = load_config()
@@ -663,4 +663,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

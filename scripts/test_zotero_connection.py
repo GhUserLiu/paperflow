@@ -2,8 +2,9 @@
 """Test Zotero API connection"""
 
 import sys
-from arxiv_zotero.utils.credentials import load_credentials
+
 from arxiv_zotero.clients.zotero_client import ZoteroClient
+from arxiv_zotero.utils.credentials import load_credentials
 
 
 def test_zotero_connection():

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Find Zotero collection keys"""
 
-from arxiv_zotero.utils.credentials import load_credentials
 from arxiv_zotero.clients.zotero_client import ZoteroClient
+from arxiv_zotero.utils.credentials import load_credentials
 
 
 def find_collections():
@@ -10,10 +10,7 @@ def find_collections():
     print("[INFO] Loading credentials...")
     creds = load_credentials()
 
-    client = ZoteroClient(
-        library_id=creds["library_id"],
-        api_key=creds["api_key"]
-    )
+    client = ZoteroClient(library_id=creds["library_id"], api_key=creds["api_key"])
 
     print("\n[INFO] Fetching collections...")
     collections = client.zot.collections()
@@ -27,8 +24,8 @@ def find_collections():
     print("-" * 60)
 
     for coll in collections:
-        key = coll.get('key', 'N/A')
-        name = coll.get('data', {}).get('name', 'Unnamed')
+        key = coll.get("key", "N/A")
+        name = coll.get("data", {}).get("name", "Unnamed")
         print(f"{key:<25} {name}")
 
     print("\n[TIP] Copy the Collection Key and set it in your .env file:")
