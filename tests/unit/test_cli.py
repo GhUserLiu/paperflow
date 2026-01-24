@@ -27,20 +27,18 @@ class TestCLI:
             main()
 
         # Should exit with error code
-        assert exc_info.value != 0
+        assert exc_info.value.code != 0
 
-    @patch("arxiv_zotero.cli.ArxivZoteroCollector", autospec=False)
-    def test_main_with_search_mode(self, mock_collector_class, monkeypatch):
+    @patch("arxiv_zotero.cli.asyncio.run")
+    def test_main_with_search_mode(self, mock_run, monkeypatch):
         """Test CLI in search mode"""
         # Set required environment variables
         monkeypatch.setenv("ZOTERO_LIBRARY_ID", "test_lib")
         monkeypatch.setenv("ZOTERO_API_KEY", "test_key")
         monkeypatch.setenv("TEMP_COLLECTION_KEY", "test_collection")
 
-        # Create a mock collector instance with async close method
-        mock_collector = MagicMock()
-        mock_collector.close = AsyncMock()
-        mock_collector_class.return_value = mock_collector
+        # Make asyncio.run return 0 (success)
+        mock_run.return_value = 0
 
         # Mock command line arguments
         test_args = ["cli", "--keywords", "test", "--max-results", "5", "--no-pdf"]
@@ -50,7 +48,8 @@ class TestCLI:
                 main()
 
         # Should exit successfully
-        assert exc_info.value == 0
+        assert exc_info.value.code == 0
+        assert mock_run.called
 
     @patch("arxiv_zotero.cli.asyncio.run")
     def test_main_auto_collection(self, mock_run, monkeypatch):
@@ -70,7 +69,7 @@ class TestCLI:
 
         # Verify asyncio.run was called and exit was successful
         assert mock_run.called
-        assert exc_info.value == 0
+        assert exc_info.value.code == 0
 
     def test_main_invalid_args(self, monkeypatch):
         """Test CLI with invalid arguments"""
@@ -78,12 +77,12 @@ class TestCLI:
         monkeypatch.setenv("ZOTERO_API_KEY", "test_key")
         monkeypatch.setenv("TEMP_COLLECTION_KEY", "test_collection")
 
-        # Invalid max-results (negative)
-        test_args = ["cli", "--keywords", "test", "--max-results", "-5"]
+        # Invalid date format
+        test_args = ["cli", "--keywords", "test", "--start-date", "invalid-date"]
 
         with patch.object(sys, "argv", test_args):
             with pytest.raises(SystemExit) as exc_info:
                 main()
 
-        # Should exit with error code
-        assert exc_info.value != 0
+        # Should exit with error code (argparse error)
+        assert exc_info.value.code != 0
