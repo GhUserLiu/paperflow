@@ -132,7 +132,7 @@ async def collect_papers_for_category_bilingual(
         print(f"起始时间: {start_date.strftime('%Y-%m-%d %H:%M:%S')}")
 
         # Run bilingual collection
-        successful, failed = await collector.run_bilingual_collection_async(
+        successful, failed = await collector.run_auto_collection_async(
             category=category,
             start_date=start_date,
             config_path=BILINGUAL_CONFIG_PATH,
@@ -201,7 +201,7 @@ async def collect_papers_for_category(
 
         # Run collection with multi-source support
         # 执行采集(支持多来源)
-        successful, failed = await collector.run_collection_async(
+        successful, failed = await collector.run_manual_collection_async(
             search_params=search_params,
             download_pdfs=True,
             use_all_sources=True,  # 启用多来源搜索(arXiv + ChinaXiv)

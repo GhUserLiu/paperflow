@@ -36,7 +36,7 @@ async def main():
     )
 
     # 执行采集
-    successful, failed = await collector.run_collection_async(
+    successful, failed = await collector.run_manual_collection_async(
         search_params=search_params,
         download_pdfs=True
     )
@@ -101,12 +101,12 @@ papers = collector.search_all_sources(search_params)
 
 ---
 
-##### run_collection_async()
+##### run_manual_collection_async()
 
 异步执行论文采集。
 
 ```python
-successful, failed = await collector.run_collection_async(
+successful, failed = await collector.run_manual_collection_async(
     search_params: ArxivSearchParams,
     download_pdfs: bool = True,
     use_all_sources: bool = False
@@ -214,7 +214,7 @@ collector = ArxivZoteroCollector(
 为不同来源使用不同关键词：
 
 ```python
-successful, failed = await collector.run_bilingual_collection_async(
+successful, failed = await collector.run_auto_collection_async(
     category="communication",  # 配置文件中的类别
     start_date=datetime.now() - timedelta(days=1),
     config_path="config/bilingual_config.yaml",
@@ -306,7 +306,7 @@ async def main():
             max_results=10
         )
 
-        successful, failed = await collector.run_collection_async(
+        successful, failed = await collector.run_manual_collection_async(
             search_params=search_params
         )
 
@@ -362,7 +362,7 @@ async with ArxivZoteroCollector(...) as collector:
 
 ```python
 # 已内置并发控制，无需手动设置
-successful, failed = await collector.run_collection_async(
+successful, failed = await collector.run_manual_collection_async(
     search_params=search_params
 )
 ```
@@ -390,7 +390,7 @@ search_params = ArxivSearchParams(
 )
 
 # 自动补充直到达到 50 篇
-successful, failed = await collector.run_collection_async(
+successful, failed = await collector.run_manual_collection_async(
     search_params=search_params,
     target_results=50
 )
@@ -402,7 +402,7 @@ successful, failed = await collector.run_collection_async(
 
 ```python
 # API 调用失败会自动重试（指数退避，最多 3 次）
-successful, failed = await collector.run_collection_async(
+successful, failed = await collector.run_manual_collection_async(
     search_params=search_params
 )
 ```
@@ -445,7 +445,7 @@ async def collect_papers():
     )
 
     try:
-        successful, failed = await collector.run_collection_async(
+        successful, failed = await collector.run_manual_collection_async(
             search_params=search_params,
             download_pdfs=True
         )
@@ -476,7 +476,7 @@ async def collect_high_quality_papers():
 
     try:
         # OpenAlex 排序会自动应用
-        successful, failed = await collector.run_collection_async(
+        successful, failed = await collector.run_manual_collection_async(
             search_params=search_params
         )
         print(f"高质量论文优先采集完成: {successful} 篇")
@@ -501,7 +501,7 @@ async def bilingual_collection():
     )
 
     try:
-        successful, failed = await collector.run_bilingual_collection_async(
+        successful, failed = await collector.run_auto_collection_async(
             category="general",
             start_date=datetime.now() - timedelta(days=1),
             config_path="config/bilingual_config.yaml"

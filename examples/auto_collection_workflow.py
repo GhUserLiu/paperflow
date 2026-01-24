@@ -26,12 +26,13 @@
 
 import asyncio
 from datetime import datetime
-from arxiv_zotero import ArxivZoteroCollector, ArxivSearchParams
+
+from arxiv_zotero import ArxivSearchParams, ArxivZoteroCollector
 
 
 async def auto_collection_example():
     """
-    自动采集示例（类似于 scripts/auto_collect.py）
+    自动采集示例（类似于 scripts/run_auto_collection.py）
     """
 
     import os
@@ -41,34 +42,34 @@ async def auto_collection_example():
 
     # 定义研究方向和集合
     research_areas = {
-        'general': {
-            'collection_key': 'your_general_collection',
-            'keywords': ['autonomous driving', 'intelligent vehicles']
+        "general": {
+            "collection_key": "your_general_collection",
+            "keywords": ["autonomous driving", "intelligent vehicles"],
         },
-        'perception': {
-            'collection_key': 'your_perception_collection',
-            'keywords': ['computer vision', 'object detection']
+        "perception": {
+            "collection_key": "your_perception_collection",
+            "keywords": ["computer vision", "object detection"],
         },
-        'decision': {
-            'collection_key': 'your_decision_collection',
-            'keywords': ['reinforcement learning', 'decision making']
+        "decision": {
+            "collection_key": "your_decision_collection",
+            "keywords": ["reinforcement learning", "decision making"],
         },
-        'control': {
-            'collection_key': 'your_control_collection',
-            'keywords': ['vehicle control', 'path planning']
+        "control": {
+            "collection_key": "your_control_collection",
+            "keywords": ["vehicle control", "path planning"],
         },
-        'communication': {
-            'collection_key': 'your_communication_collection',
-            'keywords': ['V2X communication', 'connected vehicles']
-        }
+        "communication": {
+            "collection_key": "your_communication_collection",
+            "keywords": ["V2X communication", "connected vehicles"],
+        },
     }
 
-    print("="*60)
+    print("=" * 60)
     print("自动采集示例 | Auto Collection Example")
-    print("="*60)
+    print("=" * 60)
     print(f"开始时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"研究方向: {len(research_areas)} 个")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")
 
     total_success = 0
     total_failed = 0
@@ -85,21 +86,16 @@ async def auto_collection_example():
         collector = ArxivZoteroCollector(
             zotero_library_id=ZOTERO_LIBRARY_ID,
             zotero_api_key=ZOTERO_API_KEY,
-            collection_key=area_config['collection_key']
+            collection_key=area_config["collection_key"],
         )
 
         try:
             # 配置搜索参数
-            search_params = ArxivSearchParams(
-                keywords=area_config['keywords'],
-                max_results=25
-            )
+            search_params = ArxivSearchParams(keywords=area_config["keywords"], max_results=25)
 
             # 执行采集
-            successful, failed = await collector.run_collection_async(
-                search_params=search_params,
-                download_pdfs=True,
-                use_all_sources=False
+            successful, failed = await collector.run_manual_collection_async(
+                search_params=search_params, download_pdfs=True, use_all_sources=False
             )
 
             total_success += successful

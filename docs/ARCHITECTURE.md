@@ -166,7 +166,8 @@ This document details the system architecture, design decisions, and code organi
 
 **关键方法**:
 - `search_all_sources()`: 多来源搜索
-- `run_collection_async()`: 异步采集流程
+- `run_manual_collection_async()`: 手动采集流程
+- `run_auto_collection_async()`: 自动采集流程（双语模式）
 - `rank_papers_with_openalex()`: OpenAlex 排序
 
 #### PaperProcessor

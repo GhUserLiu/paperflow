@@ -39,16 +39,16 @@ cp .env.example .env
 
 ```bash
 # 搜索论文
-python scripts/search_papers.py -k "deep learning"
+python scripts/run_manual_search.py -k "deep learning"
 
 # 启用期刊排序（高质量优先）
-python scripts/search_papers.py -k "computer vision" -e
+python scripts/run_manual_search.py -k "computer vision" -e
 
 # 更多结果
-python scripts/search_papers.py -k "neural networks" -m 50
+python scripts/run_manual_search.py -k "neural networks" -m 50
 
 # 预览模式
-python scripts/search_papers.py -k "quantum" --dry-run
+python scripts/run_manual_search.py -k "quantum" --dry-run
 ```
 
 ## 📚 文档
@@ -64,7 +64,7 @@ python scripts/search_papers.py -k "quantum" --dry-run
 按期刊影响力排序（`cited_by_percentile`, `h_index`, `impact_factor`）：
 
 ```bash
-python scripts/search_papers.py -k "machine learning" -e
+python scripts/run_manual_search.py -k "machine learning" -e
 ```
 
 ### 双语采集
@@ -72,13 +72,13 @@ python scripts/search_papers.py -k "machine learning" -e
 同时采集 arXiv（英文）和 ChinaXiv（中文）：
 
 ```bash
-python scripts/search_papers.py -k "人工智能" -x
+python scripts/run_manual_search.py -k "人工智能" -x
 ```
 
 ### 自定义权重
 
 ```bash
-python scripts/search_papers.py -k "deep learning" -e \
+python scripts/run_manual_search.py -k "deep learning" -e \
   -w '{"cited_by_percentile": 0.7, "h_index": 0.2, "impact_factor": 0.1}'
 ```
 

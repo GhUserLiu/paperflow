@@ -35,12 +35,12 @@ scripts\setup_dev.bat
 
 ---
 
-### 2. auto_collect.py
+### 2. run_auto_collection.py
 **用途**: 自动收集 ArXiv 论文 | **Purpose**: Automatic ArXiv paper collection
 
 **使用方法 | Usage**:
 ```bash
-python scripts/auto_collect.py
+python scripts/run_auto_collection.py
 ```
 
 **环境变量 | Environment Variables**:
@@ -74,13 +74,23 @@ scripts\git-proxy-push.bat
 
 ---
 
-### 3. search_papers.py
-**用途**: 搜索 ArXiv 论文 | **Purpose**: Search ArXiv papers
+### 4. run_manual_search.py
+
+**用途**: 手动搜索 ArXiv 论文 | **Purpose**: Manual search for ArXiv papers
 
 **使用方法 | Usage**:
+
 ```bash
-python scripts/search_papers.py --keywords "deep learning"
+python scripts/run_manual_search.py --keywords "deep learning"
 ```
+
+**常用参数 | Common Arguments**:
+
+- `--keywords, -k`: 搜索关键词
+- `--max-results, -m`: 最大结果数（默认50）
+- `--enable-openalex, -e`: 启用OpenAlex排序
+- `--chinaxiv, -x`: 启用ChinaXiv搜索
+- `--dry-run`: 预览模式，不保存到Zotero
 
 ---
 

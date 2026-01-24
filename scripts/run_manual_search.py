@@ -284,7 +284,7 @@ async def search_papers(
 
             # Run collection with multi-source support
             # 执行采集（支持多来源）
-            successful, failed = await collector.run_collection_async(
+            successful, failed = await collector.run_manual_collection_async(
                 search_params=search_params,
                 download_pdfs=download_pdfs,
                 use_all_sources=enable_chinaxiv,  # 启用多来源搜索
@@ -319,10 +319,12 @@ async def search_papers(
                 )
 
                 # 继续采集
-                additional_successful, additional_failed = await collector.run_collection_async(
-                    search_params=search_params补充,
-                    download_pdfs=download_pdfs,
-                    use_all_sources=enable_chinaxiv,
+                additional_successful, additional_failed = (
+                    await collector.run_manual_collection_async(
+                        search_params=search_params补充,
+                        download_pdfs=download_pdfs,
+                        use_all_sources=enable_chinaxiv,
+                    )
                 )
 
                 successful += additional_successful
@@ -344,7 +346,7 @@ async def search_papers(
 
             # Run collection with multi-source support
             # 执行采集（支持多来源）
-            successful, failed = await collector.run_collection_async(
+            successful, failed = await collector.run_manual_collection_async(
                 search_params=search_params,
                 download_pdfs=download_pdfs,
                 use_all_sources=enable_chinaxiv,  # 启用多来源搜索

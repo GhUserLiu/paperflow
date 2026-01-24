@@ -38,7 +38,7 @@ jobs:
           ZOTERO_API_KEY: ${{ secrets.ZOTERO_API_KEY }}
           ENABLE_CHINAXIV: ${{ secrets.ENABLE_CHINAXIV || 'false' }}
         run: |
-          python scripts/auto_collect.py
+          python scripts/run_auto_collection.py
         continue-on-error: false
 
       - name: Create commit log

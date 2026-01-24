@@ -51,7 +51,8 @@
       "Bash(mypy:*)",
       "Bash(git -c http.proxy= push origin main)",
       "Bash(git -c http.proxy= -c https.proxy= push origin main)",
-      "Bash(isort:*)"
+      "Bash(isort:*)",
+      "Bash(git mv:*)"
     ]
   }
 }

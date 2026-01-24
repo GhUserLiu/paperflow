@@ -210,14 +210,14 @@ class ArxivZoteroCollector:
             logger.error(f"Error in OpenAlex ranking: {str(e)}")
             return papers
 
-    async def run_collection_async(
+    async def run_manual_collection_async(
         self,
         search_params: ArxivSearchParams,
         download_pdfs: bool = True,
         use_all_sources: bool = False,
     ) -> Tuple[int, int]:
         """
-        Run collection process asynchronously using search parameters
+        Run manual collection process asynchronously using search parameters
 
         Args:
             search_params: Search parameters
@@ -271,10 +271,10 @@ class ArxivZoteroCollector:
             return successful, failed
 
         except Exception as e:
-            logger.error(f"Error in run_collection: {str(e)}")
+            logger.error(f"Error in run_manual_collection: {str(e)}")
             return 0, 0
 
-    async def run_bilingual_collection_async(
+    async def run_auto_collection_async(
         self,
         category: str,
         start_date,
@@ -282,7 +282,7 @@ class ArxivZoteroCollector:
         download_pdfs: bool = True,
     ) -> Tuple[int, int]:
         """
-        Run bilingual collection using config file with different keywords for each source
+        Run auto collection using config file with different keywords for each source
 
         Args:
             category: Research category (e.g., 'general', 'communication')
