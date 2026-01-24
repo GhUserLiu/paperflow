@@ -31,6 +31,7 @@ try:
     from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
     from rich.panel import Panel
     from rich.table import Table
+
     RICH_AVAILABLE = True
 except ImportError:
     RICH_AVAILABLE = False
@@ -57,7 +58,7 @@ def validate_keywords(keywords: str) -> str:
         raise ValueError(f"关键词过长（最多500字符，当前: {len(keywords)}字符）")
 
     # 检查潜在的注入攻击字符
-    dangerous_chars = [';', '\n', '\r', '\x00', '\x1a']
+    dangerous_chars = [";", "\n", "\r", "\x00", "\x1a"]
     if any(char in keywords for char in dangerous_chars):
         raise ValueError("关键词包含非法字符（不允许: ; \\n \\r 等）")
 
@@ -83,7 +84,7 @@ def validate_collection_key(collection_key: Optional[str]) -> Optional[str]:
         raise ValueError("集合 KEY 不能为空字符串")
 
     # Zotero collection keys 通常是 uppercase alphanumeric
-    if not collection_key.replace('_', '').replace('-', '').isalnum():
+    if not collection_key.replace("_", "").replace("-", "").isalnum():
         print(f"⚠️  警告: 集合 KEY '{collection_key}' 格式可能不正确")
 
     return collection_key
@@ -416,7 +417,9 @@ def main():
         """,
     )
 
-    parser.add_argument("--keywords", "-k", type=str, help='搜索关键词（例如: "autonomous driving"）')
+    parser.add_argument(
+        "--keywords", "-k", type=str, help='搜索关键词（例如: "autonomous driving"）'
+    )
 
     parser.add_argument(
         "--max-results", "-m", type=int, default=20, metavar="N", help="最大结果数（默认: 20）"
@@ -425,39 +428,45 @@ def main():
     parser.add_argument("--no-pdf", "-n", action="store_true", help="不下载 PDF 文件")
 
     parser.add_argument(
-        "--collection", "-c",
+        "--collection",
+        "-c",
         type=str,
         default=None,
         help="目标集合 KEY（默认: TEMP_COLLECTION_KEY 环境变量）",
     )
 
     parser.add_argument(
-        "--enable-chinaxiv", "-x",
+        "--enable-chinaxiv",
+        "-x",
         action="store_true",
         help="启用 ChinaXiv 来源搜索（同时从 arXiv 和 ChinaXiv 检索）",
     )
 
     parser.add_argument(
-        "--enable-openalex", "-e",
+        "--enable-openalex",
+        "-e",
         action="store_true",
         help="启用 OpenAlex 期刊指标排序（按被引百分位、h指数、影响因子综合评分）",
     )
 
     parser.add_argument(
-        "--openalex-weights", "-w",
+        "--openalex-weights",
+        "-w",
         type=str,
         help='OpenAlex 指标权重配置（JSON 格式，例如: \'{"cited_by_percentile": 0.5, "h_index": 0.3, "impact_factor": 0.2}\'）',
     )
 
     parser.add_argument(
-        "--target-results", "-t",
+        "--target-results",
+        "-t",
         type=int,
         metavar="N",
         help="目标保存数量（自动补充到该数量，例如: --target-results 50）",
     )
 
     parser.add_argument(
-        "--collection-only-dupcheck", "-d",
+        "--collection-only-dupcheck",
+        "-d",
         action="store_true",
         help="仅在该集合内查重（更快，但允许跨集合重复）",
     )
@@ -524,17 +533,23 @@ def main():
             table.add_row("最大结果数", str(args.max_results))
             table.add_row("下载 PDF", "否" if args.no_pdf else "是")
             table.add_row("目标集合", args.collection)
-            table.add_row("启用 ChinaXiv", "是" if args.enable_chinaxiv or ENABLE_CHINAXIV else "否")
+            table.add_row(
+                "启用 ChinaXiv", "是" if args.enable_chinaxiv or ENABLE_CHINAXIV else "否"
+            )
             table.add_row("启用 OpenAlex", "是" if args.enable_openalex else "否")
             if args.enable_openalex and openalex_weights:
                 table.add_row("OpenAlex 权重", str(openalex_weights))
             if args.target_results:
                 table.add_row("目标保存数量", str(args.target_results))
             table.add_row("集合内查重", "是" if args.collection_only_dupcheck else "否")
-            table.add_row("自动预热缓存", "否" if args.no_auto_preload else "是（如果启用 OpenAlex）")
+            table.add_row(
+                "自动预热缓存", "否" if args.no_auto_preload else "是（如果启用 OpenAlex）"
+            )
 
             console.print(table)
-            console.print("\n[dim]💡 这是预览模式，不会实际执行操作。去掉 --dry-run 参数以运行程序。[/dim]\n")
+            console.print(
+                "\n[dim]💡 这是预览模式，不会实际执行操作。去掉 --dry-run 参数以运行程序。[/dim]\n"
+            )
         else:
             print("\n🔍 Dry-Run 预览模式\n")
             print(f"搜索关键词: {args.keywords}")
