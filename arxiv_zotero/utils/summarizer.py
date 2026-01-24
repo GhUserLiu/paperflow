@@ -4,7 +4,13 @@ import time
 from pathlib import Path
 from typing import Dict, Optional
 
-import PyPDF2
+try:
+    import PyPDF2
+
+    PYPDF2_AVAILABLE = True
+except ImportError:
+    PYPDF2_AVAILABLE = False
+    PyPDF2 = None
 
 try:
     import google.generativeai as genai
@@ -25,6 +31,11 @@ class PaperSummarizer:
                 "google-generativeai is not installed. "
                 "Install it with: pip install 'arxiv-zotero-connector[ai]'"
             )
+        if not PYPDF2_AVAILABLE:
+            raise ImportError(
+                "PyPDF2 is not installed. "
+                "Install it with: pip install 'arxiv-zotero-connector[ai]'"
+            )
         self.config = config.get("summarizer", {})
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel("gemini-pro")
@@ -35,6 +46,9 @@ class PaperSummarizer:
 
     async def _read_pdf(self, pdf_path: Path) -> str:
         """Read text content from PDF file"""
+        if not PYPDF2_AVAILABLE:
+            logger.error("PyPDF2 is not installed")
+            return ""
         try:
             with open(pdf_path, "rb") as file:
                 reader = PyPDF2.PdfReader(file)
