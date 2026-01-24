@@ -30,7 +30,7 @@ async def test_concurrent_duplicate_detection():
         client = ZoteroClient(
             library_id="test_library",
             api_key="test_key",
-            collection_key=None  # 不验证集合，避免 API 调用
+            collection_key=None,  # 不验证集合，避免 API 调用
         )
 
         # Mock zot.items 方法（模拟 Zotero 中没有重复）
@@ -38,15 +38,7 @@ async def test_concurrent_duplicate_detection():
 
         # Mock zot.item_template 和 zot.create_items 方法
         client.zot.item_template = MagicMock(return_value={})
-        client.zot.create_items = MagicMock(
-            return_value={
-                "successful": {
-                    "0": {
-                        "key": "TEST123"
-                    }
-                }
-            }
-        )
+        client.zot.create_items = MagicMock(return_value={"successful": {"0": {"key": "TEST123"}}})
 
         # 测试数据：两篇相同的论文
         paper_metadata = {
@@ -64,9 +56,7 @@ async def test_concurrent_duplicate_detection():
 
         # 检查去重（应该检测到本次运行中的重复）
         duplicate_key = client.check_duplicate(
-            identifier="2301.12345",
-            identifier_field="archiveLocation",
-            collection_only=False
+            identifier="2301.12345", identifier_field="archiveLocation", collection_only=False
         )
         assert duplicate_key == "RUNTIME_DUPLICATE"
 
@@ -79,20 +69,11 @@ def test_created_papers_tracking():
     测试 _created_papers 集合的跟踪功能
     """
     with patch("paperflow.clients.zotero_client.zotero.Zotero"):
-        client = ZoteroClient(
-            library_id="test_library",
-            api_key="test_key"
-        )
+        client = ZoteroClient(library_id="test_library", api_key="test_key")
 
         # Mock zot 方法
         client.zot.item_template = MagicMock(return_value={})
-        client.zot.create_items = MagicMock(
-            return_value={
-                "successful": {
-                    "0": {"key": "ITEM1"}
-                }
-            }
-        )
+        client.zot.create_items = MagicMock(return_value={"successful": {"0": {"key": "ITEM1"}}})
 
         # 测试 arXiv ID 记录
         metadata1 = {
@@ -136,20 +117,11 @@ def test_check_duplicate_order():
     3. Zotero 库中的论文
     """
     with patch("paperflow.clients.zotero_client.zotero.Zotero"):
-        client = ZoteroClient(
-            library_id="test_library",
-            api_key="test_key"
-        )
+        client = ZoteroClient(library_id="test_library", api_key="test_key")
 
         # Mock zot 方法
         client.zot.item_template = MagicMock(return_value={})
-        client.zot.create_items = MagicMock(
-            return_value={
-                "successful": {
-                    "0": {"key": "NEWITEM"}
-                }
-            }
-        )
+        client.zot.create_items = MagicMock(return_value={"successful": {"0": {"key": "NEWITEM"}}})
         client.zot.items = MagicMock(return_value=[])
 
         # 先添加到本次运行集合
@@ -165,8 +137,7 @@ def test_check_duplicate_order():
         client.zot.items.assert_not_called()
 
         duplicate = client.check_duplicate(
-            identifier="2301.99999",
-            identifier_field="archiveLocation"
+            identifier="2301.99999", identifier_field="archiveLocation"
         )
 
         # 应该返回本次运行重复的标记

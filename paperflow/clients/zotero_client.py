@@ -377,8 +377,7 @@ class ZoteroClient:
             identifier_clean = str(identifier).strip()
             if identifier_clean in self._created_papers:
                 logger.info(
-                    f"从本次运行找到重复 {identifier_field} '{identifier}' "
-                    f"(已在本次运行中创建)"
+                    f"从本次运行找到重复 {identifier_field} '{identifier}' " f"(已在本次运行中创建)"
                 )
                 # 返回一个特殊标记，表示"本次运行中已创建"
                 return "RUNTIME_DUPLICATE"
