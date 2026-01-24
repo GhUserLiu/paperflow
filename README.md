@@ -21,8 +21,8 @@
 ### 安装
 
 ```bash
-git clone https://github.com/GhUserLiu/arxiv-zotero-auto.git
-cd arxiv-zotero-auto
+git clone https://github.com/GhUserLiu/paperflow.git
+cd paperflow
 pip install -e .
 ```
 
