@@ -29,7 +29,7 @@ class TestCLI:
         # Should exit with error code
         assert exc_info.value != 0
 
-    @patch('arxiv_zotero.cli.ArxivZoteroCollector', autospec=False)
+    @patch("arxiv_zotero.cli.ArxivZoteroCollector", autospec=False)
     def test_main_with_search_mode(self, mock_collector_class, monkeypatch):
         """Test CLI in search mode"""
         # Set required environment variables
@@ -45,14 +45,14 @@ class TestCLI:
         # Mock command line arguments
         test_args = ["cli", "--keywords", "test", "--max-results", "5", "--no-pdf"]
 
-        with patch.object(sys, 'argv', test_args):
+        with patch.object(sys, "argv", test_args):
             with pytest.raises(SystemExit) as exc_info:
                 main()
 
         # Should exit successfully
         assert exc_info.value == 0
 
-    @patch('arxiv_zotero.cli.asyncio.run')
+    @patch("arxiv_zotero.cli.asyncio.run")
     def test_main_auto_collection(self, mock_run, monkeypatch):
         """Test auto collection mode"""
         monkeypatch.setenv("ZOTERO_LIBRARY_ID", "test_lib")
@@ -64,7 +64,7 @@ class TestCLI:
 
         test_args = ["cli", "--auto"]
 
-        with patch.object(sys, 'argv', test_args):
+        with patch.object(sys, "argv", test_args):
             with pytest.raises(SystemExit) as exc_info:
                 main()
 
@@ -81,7 +81,7 @@ class TestCLI:
         # Invalid max-results (negative)
         test_args = ["cli", "--keywords", "test", "--max-results", "-5"]
 
-        with patch.object(sys, 'argv', test_args):
+        with patch.object(sys, "argv", test_args):
             with pytest.raises(SystemExit) as exc_info:
                 main()
 

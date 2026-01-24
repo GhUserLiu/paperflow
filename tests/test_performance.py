@@ -23,14 +23,10 @@ class TestPerformance:
             pytest.skip("No Zotero credentials available")
 
         collector = ArxivZoteroCollector(
-            zotero_library_id="test_library",
-            zotero_api_key="test_key"
+            zotero_library_id="test_library", zotero_api_key="test_key"
         )
 
-        search_params = ArxivSearchParams(
-            keywords=["machine learning"],
-            max_results=10
-        )
+        search_params = ArxivSearchParams(keywords=["machine learning"], max_results=10)
 
         start_time = time.time()
         papers = collector.search_arxiv(search_params)
@@ -51,14 +47,10 @@ class TestPerformance:
             pytest.skip("No Zotero credentials available")
 
         collector = ArxivZoteroCollector(
-            zotero_library_id="test_library",
-            zotero_api_key="test_key"
+            zotero_library_id="test_library", zotero_api_key="test_key"
         )
 
-        search_params = ArxivSearchParams(
-            keywords=["deep learning"],
-            max_results=50
-        )
+        search_params = ArxivSearchParams(keywords=["deep learning"], max_results=50)
 
         start_time = time.time()
         papers = collector.search_arxiv(search_params)
@@ -84,41 +76,38 @@ class TestPerformance:
             zotero_library_id="test_library",
             zotero_api_key="test_key",
             collection_key="test_collection",
-            collection_only_dupcheck=True
+            collection_only_dupcheck=True,
         )
 
         start_time = time.time()
         result = collector_collection.zotero_client.check_duplicate(
-            identifier="test_id",
-            identifier_field="archiveLocation",
-            collection_only=True
+            identifier="test_id", identifier_field="archiveLocation", collection_only=True
         )
         elapsed_collection = time.time() - start_time
 
-        assert elapsed_collection < 1.0, \
-            f"Collection-only check took {elapsed_collection:.2f}s, expected < 1s"
+        assert (
+            elapsed_collection < 1.0
+        ), f"Collection-only check took {elapsed_collection:.2f}s, expected < 1s"
 
         # Global mode (slower but more thorough)
         collector_global = ArxivZoteroCollector(
             zotero_library_id="test_library",
             zotero_api_key="test_key",
-            collection_only_dupcheck=False
+            collection_only_dupcheck=False,
         )
 
         start_time = time.time()
         result = collector_global.zotero_client.check_duplicate(
-            identifier="test_id",
-            identifier_field="archiveLocation",
-            collection_only=False
+            identifier="test_id", identifier_field="archiveLocation", collection_only=False
         )
         elapsed_global = time.time() - start_time
 
-        assert elapsed_global < 3.0, \
-            f"Global check took {elapsed_global:.2f}s, expected < 3s"
+        assert elapsed_global < 3.0, f"Global check took {elapsed_global:.2f}s, expected < 3s"
 
         # Collection-only should be faster
-        assert elapsed_collection < elapsed_global, \
-            "Collection-only mode should be faster than global mode"
+        assert (
+            elapsed_collection < elapsed_global
+        ), "Collection-only mode should be faster than global mode"
 
     @pytest.mark.benchmark
     @pytest.mark.slow
@@ -132,15 +121,11 @@ class TestPerformance:
             pytest.skip("No Zotero credentials available")
 
         collector = ArxivZoteroCollector(
-            zotero_library_id="test_library",
-            zotero_api_key="test_key"
+            zotero_library_id="test_library", zotero_api_key="test_key"
         )
 
         # First query (cold cache)
-        search_params = ArxivSearchParams(
-            keywords=["neural networks"],
-            max_results=20
-        )
+        search_params = ArxivSearchParams(keywords=["neural networks"], max_results=20)
 
         start_time = time.time()
         papers_1 = collector.search_arxiv(search_params)
@@ -156,8 +141,9 @@ class TestPerformance:
 
         # Warm cache should not be significantly slower
         # (Note: arXiv API doesn't change, so timing should be similar)
-        assert elapsed_warm < elapsed_cold * 1.5, \
-            f"Warm cache ({elapsed_warm:.2f}s) took too long vs cold ({elapsed_cold:.2f}s)"
+        assert (
+            elapsed_warm < elapsed_cold * 1.5
+        ), f"Warm cache ({elapsed_warm:.2f}s) took too long vs cold ({elapsed_cold:.2f}s)"
 
     @pytest.mark.benchmark
     @pytest.mark.slow
@@ -172,8 +158,7 @@ class TestPerformance:
             pytest.skip("No Zotero credentials available")
 
         collector = ArxivZoteroCollector(
-            zotero_library_id="test_library",
-            zotero_api_key="test_key"
+            zotero_library_id="test_library", zotero_api_key="test_key"
         )
 
         # Create mock papers
@@ -183,7 +168,7 @@ class TestPerformance:
                 "arxiv_id": f"23{1:02d}.12345",
                 "pdf_url": "https://arxiv.org/pdf/2301.00001.pdf",
                 "published_date": "2023-01-01",
-                "summary": "Test summary"
+                "summary": "Test summary",
             }
             for i in range(1, 11)
         ]
@@ -205,8 +190,9 @@ class TestPerformance:
         # Concurrent (5 at a time): ~300ms
         expected_max = 0.5  # 500ms max for concurrent processing
 
-        assert elapsed < expected_max, \
-            f"Concurrent processing took {elapsed:.2f}s, expected < {expected_max}s"
+        assert (
+            elapsed < expected_max
+        ), f"Concurrent processing took {elapsed:.2f}s, expected < {expected_max}s"
 
     def test_api_rate_limiting(self):
         """
@@ -219,8 +205,7 @@ class TestPerformance:
             pytest.skip("No Zotero credentials available")
 
         collector = ArxivZoteroCollector(
-            zotero_library_id="test_library",
-            zotero_api_key="test_key"
+            zotero_library_id="test_library", zotero_api_key="test_key"
         )
 
         # Make multiple requests and verify timing
@@ -239,7 +224,7 @@ class TestPerformance:
         # Check that requests are properly spaced
         # (min_request_interval = 6.0 seconds)
         for i in range(1, len(request_times)):
-            interval = request_times[i] - request_times[i-1]
+            interval = request_times[i] - request_times[i - 1]
             # Due to rate limiting, there should be a minimum interval
             # (Note: This is a simplified test)
             assert interval >= 0, "Time should be positive"
@@ -247,10 +232,8 @@ class TestPerformance:
     def _has_credentials(self) -> bool:
         """Check if Zotero credentials are available for testing"""
         import os
-        return bool(
-            os.getenv("ZOTERO_LIBRARY_ID") and
-            os.getenv("ZOTERO_API_KEY")
-        )
+
+        return bool(os.getenv("ZOTERO_LIBRARY_ID") and os.getenv("ZOTERO_API_KEY"))
 
 
 class MemoryProfiler:
