@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import re
 import unicodedata
@@ -95,7 +96,10 @@ class PDFManager:
         try:
             pdf_path = self.get_unique_filepath(title)
 
-            async with self.async_session.get(url) as response:
+            # 设置超时：连接超时 10 秒，读取超时 30 秒
+            timeout = aiohttp.ClientTimeout(total=30, connect=10)
+
+            async with self.async_session.get(url, timeout=timeout) as response:
                 if response.status == 200:
                     content = await response.read()
                     pdf_path.write_bytes(content)
@@ -105,6 +109,9 @@ class PDFManager:
                     logger.error(f"Failed to download PDF. Status: {response.status}")
                     return None, None
 
+        except asyncio.TimeoutError:
+            logger.error(f"PDF download timed out after 30 seconds: {url[:100]}...")
+            return None, None
         except Exception as e:
             logger.error(f"Error downloading PDF: {str(e)}")
             return None, None
