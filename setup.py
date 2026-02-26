@@ -6,10 +6,10 @@ long_description = (here / "README.md").read_text(encoding="utf-8")
 
 setup(
     name="paperflow",
-    version="2.1.0",
+    version="2.2.0",
     author="Stepan Kropachev",
     author_email="kropachev.st@gmail.com",
-    description="Automated paper collection tool for arXiv/ChinaXiv with Zotero integration",
+    description="Intelligent paper collection tool for arXiv with Zotero integration",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/GhUserLiu/arxiv-zotero-auto",
@@ -29,7 +29,7 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
     ],
-    keywords="arxiv, chinaxiv, zotero, research, papers, academic, automation",
+    keywords="arxiv, zotero, research, papers, academic, automation",
     packages=find_packages(exclude=["tests", "tests.*", "examples", "dev-tools"]),
     python_requires=">=3.7",
     install_requires=[
