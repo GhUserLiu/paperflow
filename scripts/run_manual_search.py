@@ -423,6 +423,9 @@ async def main():
   # 只搜索元数据，不下载 PDF
   python search_papers.py --keywords "reinforcement learning" --no-pdf
 
+  # 显式下载 PDF（默认行为，可省略 --pdf 参数）
+  python search_papers.py --keywords "deep learning" --pdf
+
   # 启用 OpenAlex 期刊指标排序
   python search_papers.py --keywords "deep learning" --enable-openalex
 
@@ -452,6 +455,7 @@ async def main():
   - 重复检测已启用，自动跳过已存在的论文
   - 双语模式（--enable-chinaxiv）：在 arXiv 中使用中英关键词分别搜索，总上限60篇，自动去重
   - 使用 --chinaxiv-keywords 指定中文关键词（不指定则使用相同关键词）
+  - PDF 下载：默认启用（--pdf），使用 --no-pdf 仅保存元数据
   - OpenAlex 排序按期刊影响力指标综合评分，优先显示高质量论文
   - 自动预热：启用 OpenAlex 时首次运行会自动预加载常见期刊缓存（15-30秒）
   - 如需禁用自动预热，使用 --no-auto-preload 参数
@@ -478,7 +482,24 @@ async def main():
         help="最大结果数（默认: 50，手动模式）",
     )
 
-    parser.add_argument("--no-pdf", "-n", action="store_true", help="不下载 PDF 文件")
+    parser.add_argument(
+        "--pdf",
+        "-p",
+        dest="download_pdf",
+        action="store_true",
+        help="下载 PDF 文件（默认启用）",
+    )
+
+    parser.add_argument(
+        "--no-pdf",
+        "-n",
+        dest="download_pdf",
+        action="store_false",
+        help="不下载 PDF 文件（仅保存元数据）",
+    )
+
+    # 设置默认值为 True（下载PDF）
+    parser.set_defaults(download_pdf=True)
 
     parser.add_argument(
         "--collection",
@@ -594,7 +615,7 @@ async def main():
 
             table.add_row("搜索关键词", args.keywords)
             table.add_row("最大结果数", str(args.max_results))
-            table.add_row("下载 PDF", "否" if args.no_pdf else "是")
+            table.add_row("下载 PDF", "是" if args.download_pdf else "否")
             table.add_row("目标集合", args.collection)
             table.add_row(
                 "启用 ChinaXiv", "是" if args.enable_chinaxiv or ENABLE_CHINAXIV else "否"
@@ -617,7 +638,7 @@ async def main():
             print("\n🔍 Dry-Run 预览模式\n")
             print(f"搜索关键词: {args.keywords}")
             print(f"最大结果数: {args.max_results}")
-            print(f"下载 PDF: {'否' if args.no_pdf else '是'}")
+            print(f"下载 PDF: {'是' if args.download_pdf else '否'}")
             print(f"目标集合: {args.collection}")
             print(f"启用 ChinaXiv: {'是' if args.enable_chinaxiv or ENABLE_CHINAXIV else '否'}")
             print(f"启用 OpenAlex: {'是' if args.enable_openalex else '否'}")
@@ -646,7 +667,7 @@ async def main():
         successful, failed = await search_papers(
             keywords=args.keywords,
             max_results=args.max_results,
-            download_pdfs=not args.no_pdf,
+            download_pdfs=args.download_pdf,
             collection_key=args.collection,
             enable_chinaxiv=args.enable_chinaxiv or ENABLE_CHINAXIV,
             chinaxiv_keywords=args.chinaxiv_keywords,
@@ -676,7 +697,7 @@ async def main():
         log_content = logger.generate_manual_log(
             keywords=args.keywords,
             max_results=args.max_results,
-            download_pdfs=not args.no_pdf,
+            download_pdfs=args.download_pdf,
             openalex_enabled=args.enable_openalex,
             openalex_stats=None,  # TODO: Collect stats
             source_stats=source_stats,
