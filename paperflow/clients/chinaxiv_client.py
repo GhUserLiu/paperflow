@@ -124,9 +124,9 @@ class ChinaXivClient:
                 params["endDate"] = search_params.end_date.strftime("%Y-%m-%d")
 
             try:
-                # Attempt to use API
-                response = self.session.get(
-                    f"{self.base_url}/api/search", params=params, timeout=30
+                # Attempt to use API (ChinaXiv requires POST method)
+                response = self.session.post(
+                    f"{self.base_url}/api/search", json=params, timeout=30
                 )
 
                 if response.status_code == 200:
@@ -199,14 +199,121 @@ class ChinaXivClient:
         papers = []
 
         try:
-            # This is a placeholder for web scraping implementation
-            # In production, you would use BeautifulSoup or similar
-            # Currently returns empty list as ChinaXiv API is preferred
-            logger.warning("Web scraping not fully implemented, returning empty results")
+            # Use BeautifulSoup to parse the HTML search results page
+            from bs4 import BeautifulSoup
+
+            # Construct search URL (ChinaXiv uses /user/search.htm)
+            # 需要URL编码关键词
+            from urllib.parse import quote
+            encoded_keywords = quote(keywords)
+            search_url = f"{self.base_url}/user/search.htm?searchWords={encoded_keywords}"
+
+            logger.info(f"Fetching search page: {search_url}")
+            response = self.session.get(search_url, timeout=30)
+
+            if response.status_code != 200:
+                logger.warning(f"Failed to fetch search page: {response.status_code}")
+                return []
+
+            soup = BeautifulSoup(response.content, 'html.parser')
+
+            # Find all paper entries in the search results
+            # ChinaXiv search results are typically in table or div format
+            paper_entries = soup.find_all('div', class_='search-result-item')
+            if not paper_entries:
+                # Try alternative selectors
+                paper_entries = soup.find_all('tr', class_='search-item')
+            if not paper_entries:
+                # Try to find any div with data-id attribute
+                paper_entries = soup.find_all('div', attrs={'data-id': True})
+
+            logger.info(f"Found {len(paper_entries)} paper entries on page")
+
+            for entry in paper_entries[: search_params.max_results]:
+                try:
+                    paper_data = self._parse_html_entry(entry)
+                    if paper_data:
+                        # Prepare metadata
+                        paper_meta = asyncio.run(
+                            self._prepare_chinaxiv_metadata(paper_data)
+                        )
+                        if paper_meta and self._apply_filters(paper_meta, search_params):
+                            papers.append(paper_meta)
+                            logger.info(f"Successfully parsed paper: {paper_meta.get('title', 'Unknown')[:50]}")
+                except Exception as e:
+                    logger.warning(f"Failed to parse entry: {str(e)}")
+                    continue
+
+            logger.info(f"Web scraping found {len(papers)} valid papers")
+
+        except ImportError:
+            logger.warning("BeautifulSoup not available. Install with: pip install beautifulsoup4")
         except Exception as e:
             logger.error(f"Web scraping failed: {str(e)}")
 
         return papers
+
+    def _parse_html_entry(self, entry) -> Optional[Dict]:
+        """
+        Parse a single HTML entry into paper data
+        解析单个 HTML 条目为论文数据
+        """
+        try:
+            # Extract paper ID
+            data_id = entry.get('data-id') or entry.find('a', href=True).get('href', '').split('=')[-1] if entry.find('a', href=True) else None
+
+            # Extract title
+            title_elem = entry.find('h3') or entry.find('h4') or entry.find('a', class_='title')
+            title = title_elem.get_text(strip=True) if title_elem else ''
+
+            # Extract abstract
+            abstract_elem = entry.find('div', class_='abstract') or entry.find('p', class_='description')
+            abstract = abstract_elem.get_text(strip=True) if abstract_elem else ''
+
+            # Extract authors
+            authors_elem = entry.find('div', class_='authors') or entry.find('span', class_='author')
+            authors = []
+            if authors_elem:
+                authors = [a.get_text(strip=True) for a in authors_elem.find_all('span') if a.get_text(strip=True)]
+
+            # Extract PDF URL
+            pdf_elem = entry.find('a', href=True)
+            pdf_url = ''
+            if pdf_elem and 'pdf' in pdf_elem.get('href', '').lower():
+                pdf_url = pdf_elem.get('href', '')
+                if not pdf_url.startswith('http'):
+                    pdf_url = f"{self.base_url}{pdf_url}"
+
+            # Extract publication date
+            date_elem = entry.find('span', class_='publish-date') or entry.find('time')
+            publish_date = date_elem.get('datetime') or date_elem.get_text(strip=True) if date_elem else None
+
+            # Extract DOI
+            doi_elem = entry.find('span', class_='doi') or entry.find('a', href=lambda x: x and 'doi.org' in x)
+            doi = doi_elem.get_text(strip=True) if doi_elem else ''
+            if doi_elem and isinstance(doi_elem, dict):
+                doi = doi_elem.get('content', '')
+
+            # Extract URL
+            url_elem = entry.find('a', href=True)
+            url = url_elem.get('href', '') if url_elem else ''
+            if url and not url.startswith('http'):
+                url = f"{self.base_url}{url}"
+
+            return {
+                'id': data_id,
+                'title': title,
+                'abstract': abstract,
+                'authors': authors,
+                'publishDate': publish_date,
+                'pdf_url': pdf_url,
+                'doi': doi,
+                'url': url,
+                'chinaxiv_id': data_id,
+            }
+        except Exception as e:
+            logger.warning(f"Failed to parse HTML entry: {str(e)}")
+            return None
 
     def _apply_filters(self, paper: Dict, search_params: ArxivSearchParams) -> bool:
         """Apply date and content type filters"""

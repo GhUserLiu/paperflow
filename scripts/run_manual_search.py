@@ -27,7 +27,13 @@ import io
 import os
 import sys
 from datetime import datetime
+from pathlib import Path
 from typing import Optional
+
+# Load environment variables from .env file
+from dotenv import load_dotenv
+ENV_FILE = Path(__file__).parent.parent / ".env"
+load_dotenv(ENV_FILE)
 
 from paperflow.utils.collection_logger import CollectionLogger
 
@@ -166,6 +172,7 @@ async def search_papers(
     download_pdfs: bool = True,
     collection_key: Optional[str] = None,
     enable_chinaxiv: bool = False,
+    chinaxiv_keywords: Optional[str] = None,
     enable_openalex_ranking: bool = False,
     openalex_weights: Optional[dict] = None,
     target_results: Optional[int] = None,
@@ -181,19 +188,26 @@ async def search_papers(
         download_pdfs: 是否下载 PDF
         collection_key: 目标集合 KEY（默认 temp 集合）
         enable_chinaxiv: 是否启用 ChinaXiv 来源
+        chinaxiv_keywords: ChinaXiv 中文关键词（可选，默认使用 keywords）
         enable_openalex_ranking: 是否启用 OpenAlex 期刊指标排序
         openalex_weights: OpenAlex 指标权重配置
         target_results: 目标保存数量（自动补充到该数量）
         collection_only_dupcheck: 是否仅在目标集合内查重
         auto_preload: 是否自动预热缓存（默认 True）
     """
+    # Load configuration
+    ZOTERO_LIBRARY_ID, ZOTERO_API_KEY, _, _ = load_config()
+
     print("\n" + "=" * 70)
     print("论文灵活搜索工具 | Flexible Search")
     print("=" * 70)
     print(f"开始时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"搜索关键词: {keywords}")
     if enable_chinaxiv:
+        chinaxiv_kw = chinaxiv_keywords if chinaxiv_keywords else keywords
         print(f"双语模式: arXiv + ChinaXiv（各30篇，总上限60篇，支持互补）")
+        print(f"  - arXiv 关键词: {keywords}")
+        print(f"  - ChinaXiv 关键词: {chinaxiv_kw}")
     else:
         print(f"最大结果数: {max_results}")
     if target_results:
@@ -294,6 +308,7 @@ async def search_papers(
                 search_params=search_params,
                 download_pdfs=download_pdfs,
                 use_all_sources=enable_chinaxiv,  # 启用多来源搜索
+                chinaxiv_keywords=chinaxiv_keywords,  # ChinaXiv 中文关键词
             )
 
             # 检查是否需要补充
@@ -356,6 +371,7 @@ async def search_papers(
                 search_params=search_params,
                 download_pdfs=download_pdfs,
                 use_all_sources=enable_chinaxiv,  # 启用多来源搜索
+                chinaxiv_keywords=chinaxiv_keywords,  # ChinaXiv 中文关键词
             )
 
         print(f"\n{'=' * 70}")
@@ -412,6 +428,9 @@ async def main():
   # 各30篇，总上限60篇，支持互补（一方不足时另一方补充）
   python search_papers.py --keywords "自动驾驶" --enable-chinaxiv
 
+  # 双语模式：分别为 arXiv 和 ChinaXiv 指定不同关键词
+  python search_papers.py --keywords "autonomous driving" --chinaxiv-keywords "自动驾驶" -z -x
+
   # 目标数量自动补充（初始搜索 75 篇，确保保存 50 篇）
   python search_papers.py --keywords "deep learning" --max-results 50 --target-results 50
 
@@ -426,6 +445,7 @@ async def main():
   - 保存到 Temp 集合（AQNIN4ZZ），与云端模式分开
   - 重复检测已启用，自动跳过已存在的论文
   - 双语模式（--enable-chinaxiv）：arXiv + ChinaXiv，各30篇，总上限60篇，支持互补
+  - 使用 --chinaxiv-keywords 可为 ChinaXiv 指定不同的中文关键词（不指定则使用相同关键词）
   - OpenAlex 排序按期刊影响力指标综合评分，优先显示高质量论文
   - 自动预热：启用 OpenAlex 时首次运行会自动预加载常见期刊缓存（15-30秒）
   - 如需禁用自动预热，使用 --no-auto-preload 参数
@@ -434,6 +454,13 @@ async def main():
 
     parser.add_argument(
         "--keywords", "-k", type=str, help='搜索关键词（例如: "autonomous driving"）'
+    )
+
+    parser.add_argument(
+        "--chinaxiv-keywords",
+        "-z",
+        type=str,
+        help="ChinaXiv 中文关键词（启用双语模式时使用）",
     )
 
     parser.add_argument(
@@ -610,19 +637,18 @@ async def main():
         logger = CollectionLogger(collector_instance.zotero_client)
         logger.start_timer()
 
-        successful, failed = asyncio.run(
-            search_papers(
-                keywords=args.keywords,
-                max_results=args.max_results,
-                download_pdfs=not args.no_pdf,
-                collection_key=args.collection,
-                enable_chinaxiv=args.enable_chinaxiv or ENABLE_CHINAXIV,
-                enable_openalex_ranking=args.enable_openalex,
-                openalex_weights=openalex_weights,
-                target_results=args.target_results,
-                collection_only_dupcheck=args.collection_only_dupcheck,
-                auto_preload=not args.no_auto_preload,
-            )
+        successful, failed = await search_papers(
+            keywords=args.keywords,
+            max_results=args.max_results,
+            download_pdfs=not args.no_pdf,
+            collection_key=args.collection,
+            enable_chinaxiv=args.enable_chinaxiv or ENABLE_CHINAXIV,
+            chinaxiv_keywords=args.chinaxiv_keywords,
+            enable_openalex_ranking=args.enable_openalex,
+            openalex_weights=openalex_weights,
+            target_results=args.target_results,
+            collection_only_dupcheck=args.collection_only_dupcheck,
+            auto_preload=not args.no_auto_preload,
         )
 
         # Generate and upload log
@@ -674,4 +700,12 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except RuntimeError as e:
+        if "asyncio.run() cannot be called from a running event loop" in str(e):
+            # Handle cases where event loop is already running (e.g., in IDE)
+            loop = asyncio.get_event_loop()
+            loop.run_until_complete(main())
+        else:
+            raise

@@ -130,7 +130,9 @@ class ArxivZoteroCollector:
 
         return all_papers
 
-    def _search_bilingual_mode(self, search_params: ArxivSearchParams) -> List[Dict]:
+    def _search_bilingual_mode(
+        self, search_params: ArxivSearchParams, chinaxiv_keywords: Optional[str] = None
+    ) -> List[Dict]:
         """
         Bilingual mode search for manual collection (本地模式双语采集)
 
@@ -141,7 +143,8 @@ class ArxivZoteroCollector:
         - Priority: balance between sources (prefer 30+30 over 60+0)
 
         Args:
-            search_params: Search parameters (max_results is ignored, using 30 per source)
+            search_params: Search parameters for arXiv (keywords, max_results is ignored)
+            chinaxiv_keywords: Optional Chinese keywords for ChinaXiv (uses search_params.keywords if None)
 
         Returns:
             List of papers (max 60)
@@ -169,9 +172,11 @@ class ArxivZoteroCollector:
         logger.info(f"Found {len(arxiv_papers)} papers from arXiv")
 
         if self.enable_chinaxiv:
-            logger.info("Bilingual mode: Searching ChinaXiv (max 30)...")
+            # Use chinaxiv_keywords if provided, otherwise use search_params.keywords
+            chinaxiv_kw = chinaxiv_keywords if chinaxiv_keywords else search_params.keywords
+            logger.info(f"Bilingual mode: Searching ChinaXiv (max 30) with keywords: {chinaxiv_kw}")
             chinaxiv_params = ArxivSearchParams(
-                keywords=search_params.keywords,
+                keywords=chinaxiv_kw,
                 title_search=search_params.title_search,
                 categories=search_params.categories,
                 author=search_params.author,
@@ -302,6 +307,7 @@ class ArxivZoteroCollector:
         search_params: ArxivSearchParams,
         download_pdfs: bool = True,
         use_all_sources: bool = False,
+        chinaxiv_keywords: Optional[str] = None,
     ) -> Tuple[int, int]:
         """
         Run manual collection process asynchronously using search parameters
@@ -311,12 +317,13 @@ class ArxivZoteroCollector:
             download_pdfs: Whether to download PDFs
             use_all_sources: If True, search all enabled sources with bilingual mode logic
                             (arXiv 30 + ChinaXiv 30, total max 60 with complement)
+            chinaxiv_keywords: Optional Chinese keywords for ChinaXiv search (if different from arXiv)
         """
         try:
             if use_all_sources:
                 # Bilingual mode: 分别搜索 arXiv 和 ChinaXiv，各30篇，总上限60篇
                 # 当一方不足时，另一方可以补充
-                papers = self._search_bilingual_mode(search_params)
+                papers = self._search_bilingual_mode(search_params, chinaxiv_keywords)
             else:
                 papers = self.search_arxiv(search_params)
             logger.info(f"Found {len(papers)} papers matching the criteria")

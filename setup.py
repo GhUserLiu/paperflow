@@ -41,6 +41,7 @@ setup(
         "aiohttp>=3.9.0",
         "pyyaml>=6.0",
         "PyPDF2>=3.0.0",
+        "beautifulsoup4>=4.9.0",
     ],
     entry_points={
         "console_scripts": [
