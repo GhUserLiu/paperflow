@@ -202,18 +202,24 @@ async def search_papers(
     print("论文灵活搜索工具 | Flexible Search")
     print("=" * 70)
     print(f"开始时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"搜索关键词: {keywords}")
+
     if enable_chinaxiv:
+        # 双语模式
         chinaxiv_kw = chinaxiv_keywords if chinaxiv_keywords else keywords
-        print(f"双语模式: arXiv + ChinaXiv（各30篇，总上限60篇，支持互补）")
-        print(f"  - arXiv 关键词: {keywords}")
-        print(f"  - ChinaXiv 关键词: {chinaxiv_kw}")
+        print(f"🌏 双语模式: 在 arXiv 中使用中英关键词搜索")
+        print(f"  📝 英文关键词: {keywords}")
+        print(f"  📝 中文关键词: {chinaxiv_kw}")
+        print(f"  📊 每种语言上限: 30 篇，总上限: 60 篇")
+        print(f"  🔍 数据来源: arXiv（去重合并）")
     else:
+        # 单语模式
+        print(f"搜索关键词: {keywords}")
         print(f"最大结果数: {max_results}")
+        print(f"数据来源: arXiv")
+
     if target_results:
         print(f"目标保存数量: {target_results}（自动补充）")
     print(f"目标集合: {collection_key} (temp)")
-    print(f"数据来源: arXiv" + (", ChinaXiv (双语模式)" if enable_chinaxiv else ""))
     print(f"OpenAlex 排序: {'启用' if enable_openalex_ranking else '禁用'}")
     if enable_openalex_ranking and openalex_weights:
         print(f"  权重配置: {openalex_weights}")
@@ -424,12 +430,12 @@ async def main():
   python search_papers.py --keywords "neural networks" --enable-openalex \\
     --openalex-weights '{"cited_by_percentile": 0.7, "h_index": 0.2, "impact_factor": 0.1}'
 
-  # 双语模式：同时搜索 arXiv（英文）和 ChinaXiv（中文）
-  # 各30篇，总上限60篇，支持互补（一方不足时另一方补充）
-  python search_papers.py --keywords "自动驾驶" --enable-chinaxiv
+  # 双语模式：在 arXiv 中使用中英关键词搜索
+  # 英文关键词搜索 30 篇 + 中文关键词搜索 30 篇，去重后总上限 60 篇
+  python search_papers.py --keywords "autonomous driving" --chinaxiv-keywords "自动驾驶" -x
 
-  # 双语模式：分别为 arXiv 和 ChinaXiv 指定不同关键词
-  python search_papers.py --keywords "autonomous driving" --chinaxiv-keywords "自动驾驶" -z -x
+  # 双语模式：相同的中英关键词
+  python search_papers.py --keywords "自动驾驶" --enable-chinaxiv
 
   # 目标数量自动补充（初始搜索 75 篇，确保保存 50 篇）
   python search_papers.py --keywords "deep learning" --max-results 50 --target-results 50
@@ -444,8 +450,8 @@ async def main():
   - 本地模式，不影响云端自动采集（scripts/run_auto_collection.py）
   - 保存到 Temp 集合（AQNIN4ZZ），与云端模式分开
   - 重复检测已启用，自动跳过已存在的论文
-  - 双语模式（--enable-chinaxiv）：arXiv + ChinaXiv，各30篇，总上限60篇，支持互补
-  - 使用 --chinaxiv-keywords 可为 ChinaXiv 指定不同的中文关键词（不指定则使用相同关键词）
+  - 双语模式（--enable-chinaxiv）：在 arXiv 中使用中英关键词分别搜索，总上限60篇，自动去重
+  - 使用 --chinaxiv-keywords 指定中文关键词（不指定则使用相同关键词）
   - OpenAlex 排序按期刊影响力指标综合评分，优先显示高质量论文
   - 自动预热：启用 OpenAlex 时首次运行会自动预加载常见期刊缓存（15-30秒）
   - 如需禁用自动预热，使用 --no-auto-preload 参数
@@ -460,7 +466,7 @@ async def main():
         "--chinaxiv-keywords",
         "-z",
         type=str,
-        help="ChinaXiv 中文关键词（启用双语模式时使用）",
+        help="中文关键词（双语模式：在 arXiv 中使用中英关键词分别搜索）",
     )
 
     parser.add_argument(
@@ -486,7 +492,7 @@ async def main():
         "--enable-chinaxiv",
         "-x",
         action="store_true",
-        help="启用 ChinaXiv 来源搜索（双语模式：arXiv + ChinaXiv，各30篇，总上限60篇，支持互补）",
+        help="启用双语模式（使用中英关键词在 arXiv 中分别搜索，总上限60篇）",
     )
 
     parser.add_argument(

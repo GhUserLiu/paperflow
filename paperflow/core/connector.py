@@ -136,47 +136,32 @@ class ArxivZoteroCollector:
         """
         Bilingual mode search for manual collection (本地模式双语采集)
 
-        Strategy:
-        - Search arXiv and ChinaXiv separately, each with max 30 papers
-        - Total limit: 60 papers
-        - If one source has < 30 results, the other can supplement
-        - Priority: balance between sources (prefer 30+30 over 60+0)
+        新策略：在 arXiv 中使用中英双语关键词搜索
+        - 使用英文关键词在 arXiv 中搜索（最多 30 篇）
+        - 使用中文关键词在 arXiv 中搜索（最多 30 篇）
+        - 合并结果并去重（基于 arxiv_id）
+        - 总上限 60 篇
+        - 支持互补逻辑
 
         Args:
-            search_params: Search parameters for arXiv (keywords, max_results is ignored)
-            chinaxiv_keywords: Optional Chinese keywords for ChinaXiv (uses search_params.keywords if None)
+            search_params: Search parameters (keywords should be English)
+            chinaxiv_keywords: Chinese keywords for arXiv search (中文关键词)
 
         Returns:
             List of papers (max 60)
         """
-        BILINGUAL_MAX_PER_SOURCE = 30  # 每个来源上限30篇
+        BILINGUAL_MAX_PER_SOURCE = 30  # 每种语言上限30篇
         BILINGUAL_TOTAL_MAX = 60  # 总上限60篇
 
-        all_papers = []
-        arxiv_papers = []
-        chinaxiv_papers = []
+        english_papers = []
+        chinese_papers = []
 
-        # 分别搜索 arXiv 和 ChinaXiv，各30篇
-        logger.info("Bilingual mode: Searching arXiv (max 30)...")
-        arxiv_params = ArxivSearchParams(
-            keywords=search_params.keywords,
-            title_search=search_params.title_search,
-            categories=search_params.categories,
-            author=search_params.author,
-            start_date=search_params.start_date,
-            end_date=search_params.end_date,
-            content_type=search_params.content_type,
-            max_results=BILINGUAL_MAX_PER_SOURCE,
-        )
-        arxiv_papers = self.search_arxiv(arxiv_params)
-        logger.info(f"Found {len(arxiv_papers)} papers from arXiv")
-
-        if self.enable_chinaxiv:
-            # Use chinaxiv_keywords if provided, otherwise use search_params.keywords
-            chinaxiv_kw = chinaxiv_keywords if chinaxiv_keywords else search_params.keywords
-            logger.info(f"Bilingual mode: Searching ChinaXiv (max 30) with keywords: {chinaxiv_kw}")
-            chinaxiv_params = ArxivSearchParams(
-                keywords=chinaxiv_kw,
+        # 1. 使用英文关键词在 arXiv 中搜索
+        english_keywords = search_params.keywords
+        if english_keywords:
+            logger.info(f"🔍 Searching arXiv with English keywords: {english_keywords}")
+            english_params = ArxivSearchParams(
+                keywords=english_keywords,
                 title_search=search_params.title_search,
                 categories=search_params.categories,
                 author=search_params.author,
@@ -185,36 +170,72 @@ class ArxivZoteroCollector:
                 content_type=search_params.content_type,
                 max_results=BILINGUAL_MAX_PER_SOURCE,
             )
-            chinaxiv_papers = self.search_chinaxiv(chinaxiv_params)
-            logger.info(f"Found {len(chinaxiv_papers)} papers from ChinaXiv")
+            english_papers = self.search_arxiv(english_params)
+            logger.info(f"✅ Found {len(english_papers)} papers with English keywords")
 
-        # 互补逻辑：如果一方不足30篇，另一方可以补充
-        arxiv_count = len(arxiv_papers)
-        chinaxiv_count = len(chinaxiv_papers)
+        # 2. 使用中文关键词在 arXiv 中搜索
+        chinese_keywords = chinaxiv_keywords
+        if chinese_keywords:
+            logger.info(f"🔍 Searching arXiv with Chinese keywords: {chinese_keywords}")
+            chinese_params = ArxivSearchParams(
+                keywords=chinese_keywords,
+                title_search=search_params.title_search,
+                categories=search_params.categories,
+                author=search_params.author,
+                start_date=search_params.start_date,
+                end_date=search_params.end_date,
+                content_type=search_params.content_type,
+                max_results=BILINGUAL_MAX_PER_SOURCE,
+            )
+            chinese_papers = self.search_arxiv(chinese_params)
+            logger.info(f"✅ Found {len(chinese_papers)} papers with Chinese keywords")
 
-        if arxiv_count < BILINGUAL_MAX_PER_SOURCE and chinaxiv_count > BILINGUAL_MAX_PER_SOURCE:
-            # arXiv 不足，ChinaXiv 可以补充
-            supplement = min(BILINGUAL_MAX_PER_SOURCE - arxiv_count, chinaxiv_count - BILINGUAL_MAX_PER_SOURCE)
+        # 3. 合并结果并去重（基于 arxiv_id）
+        all_papers = []
+        seen_ids = set()
+
+        # 优先保留英文关键词的结果（因为通常更精确）
+        for paper in english_papers:
+            paper_id = paper.get("arxiv_id")
+            if paper_id and paper_id not in seen_ids:
+                seen_ids.add(paper_id)
+                all_papers.append(paper)
+
+        # 添加中文关键词的结果（去重）
+        duplicate_count = 0
+        for paper in chinese_papers:
+            paper_id = paper.get("arxiv_id")
+            if paper_id and paper_id not in seen_ids:
+                seen_ids.add(paper_id)
+                all_papers.append(paper)
+            elif paper_id in seen_ids:
+                duplicate_count += 1
+
+        if duplicate_count > 0:
+            logger.info(f"📝 Removed {duplicate_count} duplicate papers")
+
+        # 4. 互补逻辑
+        english_count = len(english_papers)
+        chinese_count = len(chinese_papers)
+
+        # 如果英文结果不足，允许中文结果补充
+        if english_count < BILINGUAL_MAX_PER_SOURCE and chinese_count > BILINGUAL_MAX_PER_SOURCE:
+            supplement = min(BILINGUAL_MAX_PER_SOURCE - english_count, chinese_count - BILINGUAL_MAX_PER_SOURCE)
             if supplement > 0:
-                logger.info(f"arXiv has {arxiv_count} (< {BILINGUAL_MAX_PER_SOURCE}), supplementing with {supplement} more from ChinaXiv")
-                chinaxiv_papers = chinaxiv_papers[:BILINGUAL_MAX_PER_SOURCE + supplement]
+                logger.info(f"📊 English results ({english_count}) < {BILINGUAL_MAX_PER_SOURCE}, adding {supplement} more from Chinese results")
 
-        elif chinaxiv_count < BILINGUAL_MAX_PER_SOURCE and arxiv_count > BILINGUAL_MAX_PER_SOURCE:
-            # ChinaXiv 不足，arXiv 可以补充
-            supplement = min(BILINGUAL_MAX_PER_SOURCE - chinaxiv_count, arxiv_count - BILINGUAL_MAX_PER_SOURCE)
+        # 如果中文结果不足，允许英文结果补充
+        elif chinese_count < BILINGUAL_MAX_PER_SOURCE and english_count > BILINGUAL_MAX_PER_SOURCE:
+            supplement = min(BILINGUAL_MAX_PER_SOURCE - chinese_count, english_count - BILINGUAL_MAX_PER_SOURCE)
             if supplement > 0:
-                logger.info(f"ChinaXiv has {chinaxiv_count} (< {BILINGUAL_MAX_PER_SOURCE}), supplementing with {supplement} more from arXiv")
-                arxiv_papers = arxiv_papers[:BILINGUAL_MAX_PER_SOURCE + supplement]
+                logger.info(f"📊 Chinese results ({chinese_count}) < {BILINGUAL_MAX_PER_SOURCE}, adding {supplement} more from English results")
 
-        # 合并结果
-        all_papers = arxiv_papers + chinaxiv_papers
-
-        # 确保总数不超过上限
+        # 5. 确保总数不超过上限
         if len(all_papers) > BILINGUAL_TOTAL_MAX:
-            logger.info(f"Total papers ({len(all_papers)}) exceeds limit ({BILINGUAL_TOTAL_MAX}), truncating...")
+            logger.info(f"✂️  Total papers ({len(all_papers)}) exceeds limit ({BILINGUAL_TOTAL_MAX}), truncating...")
             all_papers = all_papers[:BILINGUAL_TOTAL_MAX]
 
-        logger.info(f"Bilingual mode total: {len(arxiv_papers)} from arXiv + {len(chinaxiv_papers)} from ChinaXiv = {len(all_papers)} papers")
+        logger.info(f"🎯 Bilingual search complete: {len(english_papers)} English + {len(chinese_papers)} Chinese = {len(all_papers)} unique papers")
 
         # Apply OpenAlex ranking if enabled
         if self.enable_openalex_ranking:

@@ -45,6 +45,9 @@ python scripts/run_manual_search.py -k "deep learning"
 # 启用期刊排序（高质量优先）
 python scripts/run_manual_search.py -k "computer vision" -e
 
+# 双语模式：在 arXiv 中使用中英关键词搜索
+python scripts/run_manual_search.py -k "autonomous driving" -z "自动驾驶" -x
+
 # 更多结果
 python scripts/run_manual_search.py -k "neural networks" -m 50
 
