@@ -13,7 +13,8 @@
 - 🎯 **期刊排序** - OpenAlex 期刊指标智能排序（影响力优先）
 - 🌏 **双语采集** - 支持 arXiv 和 ChinaXiv（中科院预印本）
 - 🤖 **AI 摘要** - 可选的 AI 驱动论文摘要
-- 🔄 **每日定时** - GitHub Actions 自动采集最新论文
+- ☁️ **云端模式** - GitHub Actions 定时自动采集最新论文
+- 💻 **本地模式** - 手动搜索特定主题文献
 - 🎨 **精美 CLI** - Rich 库美化终端输出
 
 ## 🚀 快速开始
@@ -38,11 +39,15 @@ cp .env.example .env
 ### 使用
 
 ```bash
-# 搜索论文
+# 本地模式 - 手动搜索论文
 python scripts/run_manual_search.py -k "deep learning"
 
 # 启用期刊排序（高质量优先）
 python scripts/run_manual_search.py -k "computer vision" -e
+
+# 双语模式：同时搜索 arXiv（英文）和 ChinaXiv（中文）
+# 各30篇，总上限60篇，支持互补
+python scripts/run_manual_search.py -k "自动驾驶" -x
 
 # 更多结果
 python scripts/run_manual_search.py -k "neural networks" -m 50
@@ -59,7 +64,27 @@ paperflow search --keywords "deep learning" --max-results 10
 paperflow auto collect
 ```
 
-## 🔧 GitHub Secrets 配置
+## 📖 两种运行模式
+
+PaperFlow 支持两种运行模式，满足不同场景需求：
+
+### ☁️ 云端模式（自动采集）
+- **脚本**: `run_auto_collection.py`
+- **部署**: GitHub Actions 定时任务
+- **功能**: 每日自动采集 5 个研究方向的最新论文
+- **保存位置**: 按分类保存到 5 个对应的 Zotero 集合
+- **数据源**: arXiv + ChinaXiv（双语模式）
+- **优势**: 无需本地运行，自动化更新
+
+### 💻 本地模式（手动搜索）
+- **脚本**: `run_manual_search.py`
+- **运行**: 本地电脑手动执行
+- **功能**: 按需搜索特定主题的论文
+- **保存位置**: 统一保存到临时集合 `AQNIN4ZZ`
+- **数据源**: arXiv + ChinaXiv（可选，双语模式：各30篇，总上限60篇，支持互补）
+- **优势**: 灵活可控，支持预览和自定义参数
+
+## 🔧 GitHub Secrets 配置（云端模式）
 
 在 **Settings → Secrets and variables → Actions** 中添加：
 

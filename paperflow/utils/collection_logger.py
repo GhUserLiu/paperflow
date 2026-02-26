@@ -93,8 +93,8 @@ class CollectionLogger:
 
         # Header
         lines.append("=" * 50)
-        lines.append("ArXiv 自动采集日志")
-        lines.append("Auto Collection Log")
+        lines.append("ArXiv 云端模式日志")
+        lines.append("Cloud Mode Collection Log")
         lines.append("=" * 50)
 
         # Timestamp

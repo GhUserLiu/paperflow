@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-定时任务示例 | Scheduled Collection Example
+云端模式示例 | Cloud Mode Collection Example
 
 运行方式 | Usage:
     cd examples
@@ -13,7 +13,7 @@
     - 批量采集和统计
 
 适用场景 | Use Cases:
-    - 每日定时任务（配合 cron 或 GitHub Actions）
+    - 云端定时任务（配合 cron 或 GitHub Actions）
     - 批量历史数据采集
     - 多研究方向并行管理
 
@@ -32,7 +32,7 @@ from paperflow import ArxivSearchParams, ArxivZoteroCollector
 
 async def auto_collection_example():
     """
-    自动采集示例（类似于 scripts/run_auto_collection.py）
+    云端模式采集示例（类似于 scripts/run_auto_collection.py）
     """
 
     import os
@@ -65,7 +65,7 @@ async def auto_collection_example():
     }
 
     print("=" * 60)
-    print("自动采集示例 | Auto Collection Example")
+    print("云端模式采集示例 | Cloud Mode Collection Example")
     print("=" * 60)
     print(f"开始时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"研究方向: {len(research_areas)} 个")

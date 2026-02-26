@@ -1,21 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-灵活的 arXiv 论文搜索脚本（独立于每日定时任务）
-Flexible arXiv Paper Search Script (Independent from Daily Tasks)
+Local Mode: Flexible arXiv Paper Search Script
+本地模式：灵活的 arXiv 论文搜索脚本
+
+运行在本地电脑，按需手动搜索论文（区别于云端自动采集模式）
+Run on local machine for manual on-demand paper searching (distinct from cloud auto-collection)
 
 用法 | Usage:
     # 搜索自动驾驶相关论文（默认20篇）
-    python search_papers.py --keywords "autonomous driving"
+    python run_manual_search.py --keywords "autonomous driving"
 
     # 深度学习和计算机视觉
-    python search_papers.py --keywords '"deep learning" AND "computer vision"'
+    python run_manual_search.py --keywords '"deep learning" AND "computer vision"'
 
     # 指定结果数量
-    python search_papers.py --keywords "V2X communication" --max-results 50
+    python run_manual_search.py --keywords "V2X communication" --max-results 50
 
     # 只搜索元数据，不下载 PDF
-    python search_papers.py --keywords "reinforcement learning" --no-pdf
+    python run_manual_search.py --keywords "reinforcement learning" --no-pdf
 """
 
 import argparse
@@ -189,11 +192,14 @@ async def search_papers(
     print("=" * 70)
     print(f"开始时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"搜索关键词: {keywords}")
-    print(f"最大结果数: {max_results}")
+    if enable_chinaxiv:
+        print(f"双语模式: arXiv + ChinaXiv（各30篇，总上限60篇，支持互补）")
+    else:
+        print(f"最大结果数: {max_results}")
     if target_results:
         print(f"目标保存数量: {target_results}（自动补充）")
     print(f"目标集合: {collection_key} (temp)")
-    print(f"数据来源: arXiv" + (", ChinaXiv" if enable_chinaxiv else ""))
+    print(f"数据来源: arXiv" + (", ChinaXiv (双语模式)" if enable_chinaxiv else ""))
     print(f"OpenAlex 排序: {'启用' if enable_openalex_ranking else '禁用'}")
     if enable_openalex_ranking and openalex_weights:
         print(f"  权重配置: {openalex_weights}")
@@ -280,7 +286,7 @@ async def search_papers(
             search_params = ArxivSearchParams(keywords=[keywords], max_results=initial_results)
 
             print(f"正在搜索论文来源...")
-            print(f"提示: 这是独立的搜索脚本，不影响每日定时任务\n")
+            print(f"提示: 本地模式，不影响云端自动采集\n")
 
             # Run collection with multi-source support
             # 执行采集（支持多来源）
@@ -342,7 +348,7 @@ async def search_papers(
             search_params = ArxivSearchParams(keywords=[keywords], max_results=max_results)
 
             print(f"正在搜索论文来源...")
-            print(f"提示: 这是独立的搜索脚本，不影响每日定时任务\n")
+            print(f"提示: 本地模式，不影响云端自动采集\n")
 
             # Run collection with multi-source support
             # 执行采集（支持多来源）
@@ -379,7 +385,7 @@ async def main():
     ZOTERO_LIBRARY_ID, ZOTERO_API_KEY, TEMP_COLLECTION_KEY, ENABLE_CHINAXIV = load_config()
 
     parser = argparse.ArgumentParser(
-        description="灵活的 arXiv 论文搜索工具（独立脚本）",
+        description="本地模式：灵活的 arXiv 论文搜索工具",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 示例 | Examples:
@@ -402,6 +408,10 @@ async def main():
   python search_papers.py --keywords "neural networks" --enable-openalex \\
     --openalex-weights '{"cited_by_percentile": 0.7, "h_index": 0.2, "impact_factor": 0.1}'
 
+  # 双语模式：同时搜索 arXiv（英文）和 ChinaXiv（中文）
+  # 各30篇，总上限60篇，支持互补（一方不足时另一方补充）
+  python search_papers.py --keywords "自动驾驶" --enable-chinaxiv
+
   # 目标数量自动补充（初始搜索 75 篇，确保保存 50 篇）
   python search_papers.py --keywords "deep learning" --max-results 50 --target-results 50
 
@@ -412,9 +422,10 @@ async def main():
   python search_papers.py --keywords "deep learning" --enable-openalex --no-auto-preload
 
 注意 | Notes:
-  - 这是独立的搜索脚本，不影响 scripts/auto_collect.py
-  - 保存到 Temp 集合，与定时任务分开
+  - 本地模式，不影响云端自动采集（scripts/run_auto_collection.py）
+  - 保存到 Temp 集合（AQNIN4ZZ），与云端模式分开
   - 重复检测已启用，自动跳过已存在的论文
+  - 双语模式（--enable-chinaxiv）：arXiv + ChinaXiv，各30篇，总上限60篇，支持互补
   - OpenAlex 排序按期刊影响力指标综合评分，优先显示高质量论文
   - 自动预热：启用 OpenAlex 时首次运行会自动预加载常见期刊缓存（15-30秒）
   - 如需禁用自动预热，使用 --no-auto-preload 参数
@@ -448,7 +459,7 @@ async def main():
         "--enable-chinaxiv",
         "-x",
         action="store_true",
-        help="启用 ChinaXiv 来源搜索（同时从 arXiv 和 ChinaXiv 检索）",
+        help="启用 ChinaXiv 来源搜索（双语模式：arXiv + ChinaXiv，各30篇，总上限60篇，支持互补）",
     )
 
     parser.add_argument(

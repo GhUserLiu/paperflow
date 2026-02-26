@@ -62,7 +62,9 @@
       "Bash(git count-objects:*)",
       "Bash(du:*)",
       "Bash(for:*)",
-      "Bash(do:*)"
+      "Bash(do:*)",
+      "Bash(git -c http.proxy=\"\" -c https.proxy=\"\" pull --rebase origin main)",
+      "Bash(git -c http.proxy=\"\" -c https.proxy=\"\" push -f origin main)"
     ]
   }
 }

@@ -4,11 +4,11 @@ PaperFlow 项目工具脚本目录。
 
 ## 📋 脚本列表
 
-### 自动采集
-- **`run_auto_collection.py`** - 自动采集论文（GitHub Actions 定时任务使用）
+### ☁️ 云端模式（自动采集）
+- **`run_auto_collection.py`** - 云端自动采集论文（GitHub Actions 定时任务使用）
 
-### 手动搜索
-- **`run_manual_search.py`** - 手动搜索并保存论文
+### 💻 本地模式（手动搜索）
+- **`run_manual_search.py`** - 本地手动搜索并保存论文
 
 ### 日志管理
 - **`clean_logs.sh` / `clean_logs.bat`** - 清理日志文件（保留最近 N 条记录）

@@ -1,6 +1,9 @@
 """
-Automated Paper Collection Script for 5 Research Categories
-自动采集5类研究方向的论文
+Cloud Mode: Automated Paper Collection Script for 5 Research Categories
+云端模式：自动采集5类研究方向的论文
+
+Deployed on GitHub Actions for scheduled daily collection
+部署在 GitHub Actions 上，每日定时自动采集
 """
 
 import asyncio
@@ -24,7 +27,7 @@ if sys.platform == "win32":
 
 
 def load_config():
-    """加载并验证配置"""
+    """加载并验证配置（云端模式使用）"""
     try:
         config = ConfigLoader.load_zotero_config()
         return config["library_id"], config["api_key"], config["enable_chinaxiv"]
@@ -38,8 +41,8 @@ def load_config():
         sys.exit(1)
 
 
-# Query configuration for 5 research categories
-# 五类研究方向的查询配置
+# Query configuration for 5 research categories (Cloud Mode)
+# 五类研究方向的查询配置（云端模式）
 QUERY_MAP: Dict[str, str] = {
     "general": (
         '("intelligent connected vehicles" OR "autonomous driving") '
@@ -220,8 +223,8 @@ async def collect_papers_for_category(
 
 async def main():
     """
-    Main function to collect papers for all categories
-    主函数，采集所有类别的论文
+    Main function to collect papers for all categories (Cloud Mode)
+    主函数，采集所有类别的论文（云端模式）
     """
     # Initialize logger
     ZOTERO_LIBRARY_ID, ZOTERO_API_KEY, _ = load_config()
@@ -235,8 +238,8 @@ async def main():
 
     try:
         print("\n" + "=" * 60)
-        print("ArXiv论文自动采集系统")
-        print("Auto Paper Collection System")
+        print("ArXiv论文云端采集系统")
+        print("Cloud Mode: Auto Paper Collection System")
         print("=" * 60)
         print(f"开始时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print(f"采集类别数: {len(QUERY_MAP)}")
